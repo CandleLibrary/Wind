@@ -1,6 +1,6 @@
 {
   "name": "whind",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A Simple Lexer",
   "main": "./build/whind.js",
   "directories": {
@@ -11,7 +11,7 @@
     "test": "nyc mocha ./test/test.js",
     "build": "rollup --config ./build/config/config.js",
     "build.watch": "rollup --config ./build/config/config.js --watch",
-    "postinstall": "npm run build"
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
