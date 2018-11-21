@@ -1,0 +1,38 @@
+{
+  "name": "whind",
+  "version": "0.0.1",
+  "description": "A Simple Lexer",
+  "main": "./build/whind.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test.watch": "mocha ./test/test.js --watch",
+    "test": "nyc mocha ./test/test.js",
+    "build": "rollup --config ./build/config/config.js",
+    "build.watch": "rollup --config ./build/config/config.js --watch",
+    "postinstall": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://www.github.com/galactrax/whind"
+  },
+  "keywords": [
+    "lexer",
+    "string",
+    "parser",
+    "parse"
+  ],
+  "author": "Anthony Weathersby",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
+    "nyc": "^13.1.0",
+    "rollup": "^0.67.3"
+  },
+  "jshintConfig": {
+    "esversion": 6,
+    "unused": true
+  }
+}
