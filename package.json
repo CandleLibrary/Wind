@@ -1,7 +1,7 @@
 {
-  "name": "whind",
-  "version": "0.0.2",
-  "description": "A Simple Lexer",
+  "name": "@candlefw/whind",
+  "version": "0.0.1",
+  "description": "A Simple Tokenizer / Lexer",
   "main": "./build/whind.js",
   "directories": {
     "test": "test"
@@ -15,16 +15,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://www.github.com/galactrax/whind"
+    "url": "https://www.github.com/galactrax/cfw_whind"
   },
   "keywords": [
     "lexer",
     "string",
     "parser",
-    "parse"
+    "parse",
+    "tokenizer"
   ],
   "author": "Anthony Weathersby",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
