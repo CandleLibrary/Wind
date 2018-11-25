@@ -2,12 +2,6 @@ import { SPACE, HORIZONTAL_TAB } from "./ascii_code_points";
 
 import { jump_table, number_and_identifier_table } from "./tables/basic";
 
-/**
- * The types object bound to Lexer#types
- * @type       {Object}
- * @alias module:wick~internals.lexer.Types
- * @see {@link module:wick.core.common.Lexer}
- */
 const number = 1,
     identifier = 2,
     string = 4,
@@ -43,49 +37,29 @@ const number = 1,
         data_link,
         alpha_numeric,
         white_space_new_line,
-    };
+    },
 
+/*** MASKS ***/
 
+TYPE_MASK = 0xF,
+PARSE_STRING_MASK = 0x10,
+IGNORE_WHITESPACE_MASK = 0x20,
+TOKEN_LENGTH_MASK = 0x7FFFFFC0,
 
-/**
- * @classdesc A simple Lexical tokenizer for use with text processing. 
- * 
- * The Lexer parses an input string and yield lexical tokens.  It also provides methods for looking ahead and asserting token values. 
- *
- * There are 9 types of tokens that the Lexer will create:
- * 
- * > 1. **Identifier** - `types.identifier` or `types.id`
- * >    - Any set of characters beginning with `_`|`a-z`|`A-Z`, and followed by `0-9`|`a-z`|`A-Z`|`-`|`_`|`#`|`$`.
- * > 2. **Number** - `types.number` or `types.num`
- * >    - Any set of characters beginning with `0-9`|`.`, and followed by `0-9`|`.`.
- * > 3. **String**: 2 - `types.string` or `types.str`
- * >    - A set of characters beginning with either `'` or `"` and ending with a matching `'` or `"`.
- * > 4. **Open Bracket** - `types.open_bracket` or `types.ob`
- * >    - A single character from the set `<`|`(`|`{`|`[`.
- * > 5. **Close Bracket** - `types.close_bracket` or `types.cb`
- * >    - A single character from the set `>`|`)`|`}`|`]`.
- * > 7. **Operator**: 
- * >    - A single character from the set `*`|`+`|`<`|`=`|`>`|`\`|`&`|`%`|`!`|`|`|`^`|`:`.
- * > 8. **New Line**: 
- * >    - A single `newline` (`LF` or `NL`) character. It may also be `LFCR` if the text is formated for Windows.
- * > 9. **White Space**: 
- * >    - An uninterrupted set of `tab` or `space` characters.
- * > 10. **Symbol**:
- * >        - All other characters not defined by the the above, with each symbol token being comprised of one character.
- * 
- * Types are identified by a binary index value and are defined in Lexer.prototype.types. A token's type can be verified by with 
- * ```js
- * Lexer.token.type === Lexer.types.*`
- * ```
- * @alias Lexer
- * @memberof module:wick.core.common
- * @param {String} string - The string to parse. 
- * @param {Boolean} [IGNORE_WHITE_SPACE=true] - If set to true, the Lexer will not generate tokens for newline and whitespace characters, and instead skip to the next no whitespace/newline token. 
- * @throws     {Error} Throws "String value must be passed to Lexer" if a non-string value is passed as `string`.
- */
+//De Bruijn Sequence for finding index of right most bit set.
+//http://supertech.csail.mit.edu/papers/debruijn.pdf
+debruijnLUT = [ 
+    0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 
+    31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
+]
+
+function getNumbrOfTrailingZeroBitsFromPowerOf2(value){
+    return debruijnLUT[(value * 0x077CB531) >>> 27];
+}
+
 class Lexer {
 
-    constructor(string = "", IGNORE_WHITE_SPACE = true, PEEKING = false) {
+    constructor(string = "", INCLUDE_WHITE_SPACE_TOKENS = false, PEEKING = false) {
 
         if (typeof(string) !== "string") throw new Error("String value must be passed to Lexer");
 
@@ -102,43 +76,36 @@ class Lexer {
         /**
          * The type id of the current token.
          */
-        this.type = -1;
+        this.type = 32768; //Default "non-value" for types is 1<<15;
 
         /**
          * The offset in the string of the start of the current token.
          */
         this.off = 0;
 
+        this.masked_values = 0;
+
+        /**
+         * The character offset of the current token within a line.
+         */
+        this.char = 0;
+        /**
+         * The line position of the current token.
+         */
+        this.line = 0;
+        /**
+         * The length of the string being parsed
+         */
+        this.sl = string.length;
         /**
          * The length of the current token.
          */
         this.tl = 0;
 
         /**
-         * The character offset of the current token within a line.
-         */
-        this.char = 0;
-
-        /**
-         * The line position of the current token.
-         */
-        this.line = 0;
-
-        /**
-         * The length of the string being parsed
-         */
-        this.sl = string.length;
-
-
-        /**
          * Flag to ignore white spaced.
          */
-        this.IWS = IGNORE_WHITE_SPACE;
-
-        /**
-         * Flag set to true if the end of the string is met.
-         */
-        this.END = false;
+        this.IWS = !INCLUDE_WHITE_SPACE_TOKENS;
 
         /**
          * Flag to force the lexer to parse string contents
@@ -152,18 +119,11 @@ class Lexer {
      * Restricts max parse distance to the other Lexer's current position.
      * @param      {Lexer}  Lexer   The Lexer to limit parse distance by.
      */
-    fence(lexer = this) {
-        if (lexer.str !== this.str)
+    fence(marker = this) {
+        if (marker.str !== this.str)
             return;
-        this.sl = lexer.off;
+        this.sl = marker.off;
         return this;
-    }
-
-    /**
-     * Reference to token id types.
-     */
-    get types() {
-        return Types;
     }
 
     /**
@@ -172,13 +132,11 @@ class Lexer {
      */
     copy() {
         let out = new Lexer(this.str, this.IWS, true);
-        out.type = this.type;
         out.off = this.off;
-        out.tl = this.tl;
         out.char = this.char;
         out.line = this.line;
         out.sl = this.sl;
-        out.END = this.END;
+        out.masked_values = this.masked_values;
         return out;
     }
 
@@ -192,12 +150,10 @@ class Lexer {
 
         if (marker instanceof Lexer) {
             if (marker.str !== this.str) throw new Error("Cannot sync Lexers with different strings!");
-            this.type = marker.type;
             this.off = marker.off;
-            this.tl = marker.tl;
             this.char = marker.char;
             this.line = marker.line;
-            this.END = marker.END;
+            this.masked_values = marker.masked_values;
         }
 
         return this;
@@ -215,9 +171,9 @@ class Lexer {
             is_iws = (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "";
         this.IWS = false;
         let pk = this.copy();
-        while (!pk.END && pk.ty !== Types.nl) { pk.n(); }
+        while (!pk.END && pk.ty !== Types.nl) { pk.next(); }
         let end = pk.off;
-        throw new Error(message + "at " + this.line + ":" + this.char + n + t + n + this.str.slice(this.off - this.char, end) + n + ("").padStart(this.char - 2) + "^" + n + t + is_iws);
+        throw new Error(`${message} at ${this.line}:${this.char}\n${t}\n${this.str.slice(this.off + this.tl + 1 - this.char, end)}\n${("").padStart(this.char - 2)}^\n${t}\n${is_iws}`);
     }
 
     /**
@@ -232,12 +188,11 @@ class Lexer {
      */
     reset() {
         this.p = null;
-        this.type = -1;
+        this.type = 32768;
         this.off = 0;
         this.tl = 0;
         this.char = 0;
         this.line = 0;
-        this.END = false;
         this.n();
         return this;
     }
@@ -247,16 +202,9 @@ class Lexer {
         this.tl = 0;
         this.char = 0;
         this.line = 0;
-        this.END = false;
         this.p = null;
-        this.type = -1;
+        this.type = 32768;
     }
-
-    /**
-     * Proxy for Lexer.prototype.next
-     * @public
-     */
-    n() { return this.next(); }
 
     /**
      * Sets the internal state to point to the next token. Sets Lexer.prototype.END to `true` if the end of the string is hit.
@@ -286,18 +234,14 @@ class Lexer {
         let base = off;
 
         if (off >= l) {
-
-            marker.END = true;
             length = 0;
             base = l;
             char -= base - off;
-
             marker.type = type;
             marker.off = base;
             marker.tl = length;
             marker.char = char;
             marker.line = line;
-
             return marker;
         }
 
@@ -320,7 +264,7 @@ class Lexer {
                             if (str[off] == "-") off++;
                             marker.off = off;
                             marker.tl = 0;
-                            marker.n();
+                            marker.next();
                             off = marker.off + marker.tl;
                             //Add e to the number string
                         }
@@ -390,7 +334,6 @@ class Lexer {
                     length = 0;
                     base = l;
                     char -= base - off;
-                    marker.END = true;
                 }
             }
 
@@ -412,14 +355,7 @@ class Lexer {
      * @public
      */
     a(text) {
-        if (this.off < 0) this.throw(`Expecting ${text} got null`);
-
-        if (this.text == text)
-            this.next();
-        else
-            this.throw(`Expecting "${text}" got "${this.text}"`);
-
-        return this;
+        return this.assert(text);
     }
 
     /**
@@ -441,35 +377,27 @@ class Lexer {
     }
 
     /**
-     * Proxy for Lexer.prototype.assertChcatever
+     * Proxy for Lexer.prototype.assertCharacter
      * @public
      */
-    _appendChild_(text) { return this.assert(text); }
+    aC(char) { return this.assertCharacter(char); }
     /**
      * Compares the character value of the current token to the value passed in. Advances to next token if the two are equal.
      * @public
      * @throws {Error} - `Expecting "${text}" got "${this.text}"`
      * @param {String} text - The string to compare.
      */
-    assertCharacer(char) {
+    assertCharacter(char) {
 
         if (this.off < 0) this.throw(`Expecting ${text} got null`);
 
-        if (this.tx[this.off] == char)
+        if (this.tx[this.off] == char[0])
             this.next();
         else
-            this.throw(`Expecting "${char}" got "${this.tx}"`);
+            this.throw(`Expecting "${char[0]}" got "${this.tx[this.off]}"`);
 
         return this;
     }
-
-    /**
-     * Proxy for Lexer.prototype.peek
-     * @public
-     * @readonly
-     * @type {Lexer}
-     */
-    get pk() { return this.peek(); }
 
     /**
      * Returns the Lexer bound to Lexer.prototype.p, or creates and binds a new Lexer to Lexer.prototype.p. Advences the other Lexer to the token ahead of the calling Lexer.
@@ -498,6 +426,86 @@ class Lexer {
         return peek_marker;
     }
 
+
+    /**
+     * Proxy for Lexer.prototype.slice
+     * @public
+     */
+    s(start) { return this.slice(start); }
+
+    /**
+     * Returns a slice of the parsed string beginning at `start` and ending at the current token.
+     * @param {Number | LexerBeta} start - The offset in this.str to begin the slice. If this value is a LexerBeta, sets the start point to the value of start.off.
+     * @return {String} A substring of the parsed string.
+     * @public
+     */
+    slice(start) {
+
+        if (typeof start === "number" || typeof start === "object") {
+            if (start instanceof Lexer) start = start.off;
+            return (this.END) ? this.str.slice(start, this.sl) : this.str.slice(start, this.off);
+        }
+        return this.str.slice(this.off, this.sl);
+    }
+
+    /**
+     * Skips to the end of a comment section.
+     * @param {boolean} ASSERT - If set to true, will through an error if there is not a comment line or block to skip.
+     * @param {Lexer} [marker=this] - If another Lexer is passed into this method, it will advance the token state of that Lexer.
+     */
+    comment(ASSERT = false, marker = this) {
+
+        if (!(marker instanceof Lexer)) return marker;
+
+        if (marker.tx == "/") {
+            if (marker.pk.tx == "*") {
+                marker.sync();
+                while (!marker.END && (marker.nexts().tx != "*" || marker.pk.tx != "/")) { /* NO OP */ }
+                marker.sync().assert("/");
+            } else if (marker.pk.tx == "/") {
+                let IWS = marker.IWS;
+                while (marker.next().ty != types.new_line && !marker.END) { /* NO OP */ }
+                marker.IWS = IWS;
+                marker.next();
+            } else
+            if (ASSERT) marker.throw("Expecting the start of a comment");
+        }
+
+        return marker;
+    }
+
+
+    setString(string, RESET = true) {
+        this.str = string;
+        this.sl = string.length;
+        if (RESET) this.resetHead();
+    }
+
+    toString(){
+        return this.slice();
+    }
+
+    /*** Getters and Setters ***/
+    get string() {
+        return this.str;
+    }
+
+    /**
+     * The current token in the form of a new Lexer with the current state.
+     * Proxy property for Lexer.prototype.copy
+     * @type {Lexer}
+     * @public
+     * @readonly
+     */
+    get token() {
+        return this.copy();
+    }
+
+
+    get ch() {
+        return this.str[this.off];
+    }
+
     /**
      * Proxy for Lexer.prototype.text
      * @public
@@ -505,6 +513,7 @@ class Lexer {
      * @readonly
      */
     get tx() { return this.text; }
+    
     /**
      * The string value of the current token.
      * @type {String}
@@ -534,81 +543,81 @@ class Lexer {
     }
 
     /**
-     * Proxy for Lexer.prototype.slice
-     * @public
-     */
-    s(start) { return this.slice(start); }
-
-    /**
-     * Returns a slice of the parsed string beginning at `start` and ending at the current token.
-     * @param {Number | LexerBeta} start - The offset in this.str to begin the slice. If this value is a LexerBeta, sets the start point to the value of start.off.
-     * @return {String} A substring of the parsed string.
-     * @public
-     */
-    slice(start) {
-
-        if (typeof start === "number" || typeof start === "object") {
-            if (start instanceof Lexer) start = start.off;
-            return (this.END) ? this.str.slice(start, this.sl) : this.str.slice(start, this.off);
-        }
-        return this.str.slice(this.off, this.sl);
-    }
-
-    get ch() {
-        return this.str[this.off];
-    }
-
-    /**
-     * The current token in the form of a new Lexer with the current state.
-     * Proxy property for Lexer.prototype.copy
-     * @type {Lexer}
+     * Proxy for Lexer.prototype.peek
      * @public
      * @readonly
+     * @type {Lexer}
      */
-    get token() {
-        return this.copy();
-    }
+    get pk() { return this.peek(); }
+
     /**
-     * Skips to the end of a comment section.
-     * @param {boolean} ASSERT - If set to true, will through an error if there is not a comment line or block to skip.
-     * @param {Lexer} [marker=this] - If another Lexer is passed into this method, it will advance the token state of that Lexer.
+     * Proxy for Lexer.prototype.next
+     * @public
      */
-    comment(ASSERT = false, marker = this) {
+    get n() { return this.next(); }
 
-        if (!(marker instanceof Lexer)) return marker;
+    get END(){ return (this.token_length+this.off) >= this.sl; }
+    set END(v){}
 
-        if (marker.tx == "/") {
-            if (marker.pk.tx == "*") {
-                marker.sync();
-                while (!marker.END && (marker.n().tx != "*" || marker.pk.tx != "/")) { /* NO OP */ }
-                marker.sync().a("/");
-            } else if (marker.pk.tx == "/") {
-                let IWS = marker.IWS;
-                while (marker.n().ty != types.new_line && !marker.END) { /* NO OP */ }
-                marker.IWS = IWS;
-                marker.n();
-            } else
-            if (ASSERT) marker.throw("Expecting the start of a comment");
-        }
-
-        return marker;
+    get type(){
+        return 1 << (this.masked_values & TYPE_MASK);
     }
 
-    get string() {
-        return this.str;
+    set type(value){
+        //assuming power of 2 value.
+        this.masked_values = (this.masked_values & ~TYPE_MASK) | ((getNumbrOfTrailingZeroBitsFromPowerOf2(value)) & TYPE_MASK); 
     }
 
-    setString(string, reset = true) {
-        this.str = string;
-        this.sl = string.length;
-        if (reset) this.resetHead();
+    get tl (){
+        return this.token_length;
     }
 
-    toString(){
-        return this.slice();
+    set tl(value){
+        this.token_length = value;
+    }
+
+    get token_length(){
+        return ((this.masked_values & TOKEN_LENGTH_MASK) >> 6);
+    }
+
+    set token_length(value){
+        this.masked_values = (this.masked_values & ~TOKEN_LENGTH_MASK) | (((value << 6) | 0) & TOKEN_LENGTH_MASK); 
+    }
+
+    get IGNORE_WHITE_SPACE(){
+        return this.IWS;
+    }
+
+    get IWS(){
+        return !!(this.masked_values & IGNORE_WHITESPACE_MASK);
+    }
+
+    set IWS(boolean){
+        this.masked_values = (this.masked_values & ~IGNORE_WHITESPACE_MASK) | ((boolean | 0) << 5); 
+    }
+
+    get PARSE_STRING(){
+        return !!(this.masked_values & PARSE_STRING_MASK);
+    }
+
+    set PARSE_STRING(boolean){
+        this.masked_values = (this.masked_values & ~PARSE_STRING_MASK) | ((boolean | 0) << 4); 
+    }
+
+    /**
+     * Reference to token id types.
+     */
+    get types() {
+        return Types;
     }
 }
 
-export default function whind(string, INCLUDE_WHITE_SPACE_TOKENS) { return new Lexer(string, INCLUDE_WHITE_SPACE_TOKENS); };
+function whind(string, INCLUDE_WHITE_SPACE_TOKENS = false) { return new Lexer(string, INCLUDE_WHITE_SPACE_TOKENS); };
 
 whind.constructor = Lexer;
+
+Lexer.types = Types;
+whind.types = Types;
+
+export { Lexer }
+export default whind;
