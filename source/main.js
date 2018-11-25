@@ -44,7 +44,7 @@ const number = 1,
 TYPE_MASK = 0xF,
 PARSE_STRING_MASK = 0x10,
 IGNORE_WHITESPACE_MASK = 0x20,
-TOKEN_LENGTH_MASK = 0x7FFFFFC0,
+TOKEN_LENGTH_MASK = 0xFFFFFFC0,
 
 //De Bruijn Sequence for finding index of right most bit set.
 //http://supertech.csail.mit.edu/papers/debruijn.pdf
@@ -216,10 +216,9 @@ class Lexer {
         let str = marker.str;
 
         if (marker.sl < 1) {
-            marker.off = -1;
-            marker.type = -1;
+            marker.off = 0;
+            marker.type = 32768;
             marker.tl = 0;
-            marker.END = true;
             return marker;
         }
 
