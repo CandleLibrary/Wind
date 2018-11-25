@@ -3,7 +3,7 @@ export default {
     treeshake: true,
     output: [{
     	name:"whind",
-        file: "./build/whind.js",
+        file: "./build/whind.mjs",
         format: "es",
     },{
     	name:"whind_cjs",

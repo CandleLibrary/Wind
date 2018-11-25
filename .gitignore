@@ -81,7 +81,6 @@ Press h to open a hovercard with more details.
 
 #Build directory
 
-build/*
 !build/config/
 
 #Api directory
