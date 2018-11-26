@@ -131,7 +131,7 @@ class Lexer {
      * @return     {Lexer}  Returns a new Lexer instance with the same property values.
      */
     copy() {
-        let out = new Lexer(this.str, this.IWS, true);
+        let out = new Lexer(this.str, false, true);
         out.off = this.off;
         out.char = this.char;
         out.line = this.line;
@@ -411,11 +411,11 @@ class Lexer {
         if (!peek_marker) {
             if (!marker) return null;
             if (!this.p) {
-                this.p = new Lexer(this.str, this.IWS, true);
+                this.p = new Lexer(this.str, false, true);
                 peek_marker = this.p;
             }
         }
-
+        peek_marker.masked_values = marker.masked_values;
         peek_marker.type = marker.type;
         peek_marker.off = marker.off;
         peek_marker.tl = marker.tl;
@@ -564,6 +564,7 @@ class Lexer {
 
     set type(value){
         //assuming power of 2 value.
+
         this.masked_values = (this.masked_values & ~TYPE_MASK) | ((getNumbrOfTrailingZeroBitsFromPowerOf2(value)) & TYPE_MASK); 
     }
 

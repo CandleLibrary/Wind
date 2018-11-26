@@ -13,7 +13,8 @@ npm install --save @candlefw/whind
 ## Usage
 
 >**note**:
->This script uses ES2015 module syntax,  and has the extension ***.mjs***. To include this script in an existing projects, you may need to use the node flag ```--experimental-modules```; or, use a bundler that understands ES modules, such as [rollup](https://github.com/rollup/rollup-plugin-node-resolve).
+>This script uses ES2015 module syntax,  and has the extension ***.mjs***. To include this script in a project, you may need to use the node flag ```--experimental-modules```; or, use a bundler that supports ES modules, such as [rollup](https://github.com/rollup/rollup-plugin-node-resolve).
+
 
 
 ```javascript
@@ -36,13 +37,15 @@ lexer.ty == lexer.types.number  //=> true
 ---
 # Whind **Lexer**
 
-Exported through ```import { Lexer } from "@candlefw/whind"```
+`import { Lexer } from "@candlefw/whind"`
 
 ## Constructor
+
 
 #### new ___Lexer___ ( __string__ [ , __INCLUDE_WHITE_SPACE_TOKENS__ ] )
 - `string` - The input string to parse.
 - `INCLUDE_WHITE_SPACE_TOKENS` - Flag to include white space tokens such as `TABS` and `NEW_LINE`.
+
 >**note**: the default export `whind` has the same form as the Lexer constructor function  and is called without the **new** keyword.
 >
 > let lexer = ***whind*** ( __string__ [ , __INCLUDE_WHITE_SPACE_TOKENS__ )
@@ -51,9 +54,9 @@ Exported through ```import { Lexer } from "@candlefw/whind"```
 
 - __char__ (Read-Only) - *Number* <br>&ensp;  The char offset of the token relative to the `line`.
 
-- __END__ (Read-Only) -  *Boolean* <br>&ensp;  If true the Lexer has reached the end of the input string.s
+- __END__ (Read-Only) -  *Boolean* <br>&ensp;  If **true** the Lexer has reached the end of the input string.s
 
-- __IGNORE_WHITE_SPACE__  - *Boolean* <br>&ensp;  If true `white_space` and `new_line` tokens will not be generated.
+- __IGNORE_WHITE_SPACE__  - *Boolean* <br>&ensp;  If **true** `white_space` and `new_line` tokens will not be generated.
 
 - __line__ (Read-Only) - *Number* <br>&ensp;  The index of the current line the token is located at.
 
@@ -61,7 +64,7 @@ Exported through ```import { Lexer } from "@candlefw/whind"```
 
 - __p__ - *Whind Lexer* <br>&ensp;  A pointer cache to a peeking Lexer.
 
-- __PARSE_STRING__ - *Boolean* <br>&ensp;  If set to true then string tokens will not be generated and instead the contents of string will be individually tokenized.
+- __PARSE_STRING__ - *Boolean* <br>&ensp;  If set to **true** then string tokens will not be generated and instead the contents of string will be individually tokenized.
 
 - __sl__ - *Number* <br>&ensp;  The length of the input string. Changing `sl` will cause the Lexer to stop parsing once `off+token_length >= sl`.
 
@@ -77,10 +80,9 @@ Exported through ```import { Lexer } from "@candlefw/whind"```
 
 - __types__ - *Object* <br>&ensp;  Proxy to types object.
 
+- ***ch*** <br>&ensp;  The first character of the current token.
 
 #### Alias properties
-
-- ***ch*** <br>&ensp;  Returns the first character of the current token.
 
 - **n** <br>&ensp;  Property proxy for `next()`;
 
@@ -98,52 +100,52 @@ Exported through ```import { Lexer } from "@candlefw/whind"```
 
 ## Methods
 
-- *Lexer* - ___assert___ ( **text** ) <br>&ensp;  Compares the current token **text** value to the argument ``text``. If the values are the same then the lexer advances to the next token. If they are not equal, an error message thrown.
- - Returns Lexer to allow method chaining.   
+- *Lexer* - ___assert___ ( **text** ) <br>&ensp;  Compares the current token **text** value to the argument ``text``. If the values are the same then the lexer advances to the next token. If they are not equal, an error message is thrown.
+    - *Returns Lexer to allow method chaining.*   
 
 
 - *Lexer* - ___assertCharacter___ ( **char** ) <br>&ensp;  Same as `assert()` except compares a single character only.
-  - *Returns Lexer to allow method chaining.*
+    - *Returns Lexer to allow method chaining.*
 
 
-- *Lexer* - ___comment___ ( [ **ASSERT** [ , **marker** ] ] ) <br>&ensp;  Skips to the end of the comment section if the current token is `/` and the peek token is `/` or `*`. If *true* is passed for the `ASSERT` argument then an error is thrown if the current token plus the peek token is not `/*` or `//`.
-  - *Returns Lexer to allow method chaining.*   
+- *Lexer* - ___comment___ ( [ **ASSERT** [ , **marker** ] ] ) <br>&ensp;  Skips to the end of the comment section if the current token is `/` and the peek token is `/` or `*`. If **true** is passed for the `ASSERT` argument then an error is thrown if the current token plus the peek token is not `/*` or `//`.
+    - *Returns Lexer to allow method chaining.*   
 
 
 - *Lexer* - ___copy___ ( ) <br>&ensp;  Returns a new Whind Lexer with the same input string at the current token offset.
 
 
 - *Lexer* - ___fence___ ( [ **marker** ] ) - Reduces the input string's parse length by the value of `marker.off`. The value of the `marker` *must* be a Whind Lexer that has the same input string as the callee Whind Lexer.
- - *Returns Lexer to allow method chaining.*
+    - *Returns Lexer to allow method chaining.*
 
 
-- *Lexer* - ___next___ ( [ **marker** ] ) <br>&ensp;  Advances the `marker` to the next token in its input string. Returns `marker` or null if the end of the input string has been reached.  `marker` defaults to the calling Whind Lexer object, which means **this** will be returned if no value is passed as `marker`.
- - *Returns Lexer to allow method chaining.*
+- *Lexer* - ___next___ ( [ **marker** ] ) <br>&ensp;  Advances the `marker` to the next token in its input string. Returns `marker` or **null** if the end of the input string has been reached.  `marker` defaults to the calling Whind Lexer object, which means **this** will be returned if no value is passed as `marker`.
+    - *Returns Lexer to allow method chaining.*
 
 
 - *Lexer* - ___peek___ ( [ **marker** [ , **peek_marker** ] ] ) <br>&ensp;  Returns another Whind Lexer that is advanced one token ahead of `marker`. `marker` defaults to **this** and `peek_marker` defaults to `p`. A new Whind Lexer is created if no value is passed as `peek_marker` and `marker.p` is **null**.
 
 
 - *Lexer* - ___reset___ ( ) <br>&ensp;  Resets lexer completely. After this is called, the lexer will need to be set with a new input string to allow it to begin parsing again.
- - *Returns Lexer to allow method chaining.*
+    - *Returns Lexer to allow method chaining.*
 
 
 - *Lexer* - ___resetHead___ ( ) <br>&ensp;  Reset the lexer to the beginning of the string.
- - *Returns Lexer to allow method chaining.*
+    - *Returns Lexer to allow method chaining.*
 
 
 - *Lexer* - ___setString___ ( **string**  [ , **RESET** ] ) <br>&ensp;  Changes the input string to `string`. If the optional `RESET` argument is **true** then `resetHead()` is also called.
- - *Returns Lexer to allow method chaining.*
+    - *Returns Lexer to allow method chaining.*
 
 
 - *String* - ___slice___ ( [ **start** ] ) <br>&ensp;  Returns a substring of the input string that starts at `start` and ends at the value of `off`. If `start` is **undefined** then the substring starts at `off` and ends at `sl`.
 
 
 - *Lexer* - ___sync___ ( [ **marker** ] ) <br>&ensp;  Copies the current values of the Whind Lexer to the `marker` object. `marker` defaults to the value of `p`.
- - *Returns Lexer to allow method chaining.*
+    - *Returns Lexer to allow method chaining.*
 
 
-- ___throw___ ( **message** ) <br>&ensp;  Throws a new Error with a custom `message` and information to indicate where in the input string the the Whind Lexer was positioned.
+- ___throw___ ( **message** ) <br>&ensp;  Throws a new Error with a custom `message` and information to indicate where in the input string the current token is positioned.
 
 - *String* - ___toString___ ( ) <br>&ensp;  Returns the result of `slice()`.
 
@@ -151,7 +153,7 @@ Exported through ```import { Lexer } from "@candlefw/whind"```
 
 - ***a*** ( **text** ) <br>&ensp;  Proxy for `assert(text)`.
 
-- ***aC*** ( **char** ) <br>&ensp;  Proxy for `assertChracter(character)`.
+- ***aC*** ( **char** ) <br>&ensp;  Proxy for `assertCharacter(character)`.
 
 - ***r*** ( ) <br>&ensp;  Proxy for `reset()`.
 
@@ -169,18 +171,18 @@ Exported through ```import { Lexer } from "@candlefw/whind"```
 
 - **types.number** or **types.num**<br>&ensp; Any set of characters beginning with `0-9`|`.`, and followed by `0-9`|`.`.
 
-3. **types.string** or **types.str** <br>&ensp;  A set of characters beginning with either `'` or `"` and ending with a matching `'` or `"`.
+- **types.string** or **types.str** <br>&ensp;  A set of characters beginning with either `'` or `"` and ending with a matching `'` or `"`.
 
-4. **types.open_bracket** or **types.ob** <br>&ensp;  A single character from the set `<`|`(`|`{`|`[`.
+- **types.open_bracket** or **types.ob** <br>&ensp;  A single character from the set `<`|`(`|`{`|`[`.
 
-5. **types.close_bracket** or **types.cb** <br>&ensp;  A single character from the set `>`|`)`|`}`|`]`.
+- **types.close_bracket** or **types.cb** <br>&ensp;  A single character from the set `>`|`)`|`}`|`]`.
 
-7. **types.operator** or **types.op** <br>&ensp;  A single character from the set `*`|`+`|`<`|`=`|`>`|`\`|`&`|`%`|`!`|`|`|`^`|`:`.
+- **types.operator** or **types.op** <br>&ensp;  A single character from the set `*`|`+`|`<`|`=`|`>`|`\`|`&`|`%`|`!`|`|`|`^`|`:`.
 
-8. **types.new_line** or **types.nl** <br>&ensp;  A single `newline` (`LF` or `NL`) character. It may also be `LFCR` if the input string has Windows style new lines.
+- **types.new_line** or **types.nl** <br>&ensp;  A single `newline` (`LF` or `NL`) character. It may also be `LFCR` if the input string has Windows style new lines.
 
-9. **types.white_space** or **types.ws** <br>&ensp;  An uninterrupted set of `tab` or `space` characters.
+- **types.white_space** or **types.ws** <br>&ensp;  An uninterrupted set of `tab` or `space` characters.
 
-10. **types.symbol** or **types.sym** <br>&ensp;  All other characters not defined by the the above, with each symbol token being comprised of one character.
+- **types.symbol** or **types.sym** <br>&ensp;  All other characters not defined by the the above, with each symbol token being comprised of one character.
 
-11. **types.data_link** or **types.dl** <br>&ensp;  A data link ASCII character, followed by two more characters and another data link character.
+- **types.data_link** or **types.dl** <br>&ensp;  A data link ASCII character, followed by two more characters and another data link character.
