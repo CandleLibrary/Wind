@@ -193,7 +193,7 @@ class Lexer {
         this.tl = 0;
         this.char = 0;
         this.line = 0;
-        this.n();
+        this.n;
         return this;
     }
 
