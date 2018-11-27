@@ -141,7 +141,7 @@ lexer.ty == lexer.types.number  //=> true
 - *String* - ___slice___ ( [ **start** ] ) <br>&ensp;  Returns a substring of the input string that starts at `start` and ends at the value of `off`. If `start` is **undefined** then the substring starts at `off` and ends at `sl`.
 
 
-- *Lexer* - ___sync___ ( [ **marker** ] ) <br>&ensp;  Copies the current values of the Whind Lexer to the `marker` object. `marker` defaults to the value of `p`.
+- *Lexer* - ___sync___ ( [ **marker** ] ) <br>&ensp;  Copies the current values of the `marker` object to the Whind Lexer. `marker` defaults to the value of `p`.
     - *Returns Lexer to allow method chaining.*
 
 
