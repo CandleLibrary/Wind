@@ -112,7 +112,7 @@ lexer.ty == lexer.types.number  //=> true
     - *Returns Lexer to allow method chaining.*   
 
 
-- *Lexer* - ___copy___ ( ) <br>&ensp;  Returns a new Whind Lexer with the same input string at the current token offset.
+- *Lexer* - ___copy___ ( [ **destination** ]) <br>&ensp;  Copies the value of the lexer to `destination`. `destination` defaults to a new Whind Lexer.
 
 
 - *Lexer* - ___fence___ ( [ **marker** ] ) - Reduces the input string's parse length by the value of `marker.off`. The value of the `marker` *must* be a Whind Lexer that has the same input string as the callee Whind Lexer.
