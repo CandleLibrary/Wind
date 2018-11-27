@@ -130,14 +130,13 @@ class Lexer {
      * Copies the Lexer.
      * @return     {Lexer}  Returns a new Lexer instance with the same property values.
      */
-    copy() {
-        let out = new Lexer(this.str, false, true);
-        out.off = this.off;
-        out.char = this.char;
-        out.line = this.line;
-        out.sl = this.sl;
-        out.masked_values = this.masked_values;
-        return out;
+    copy( destination = new Lexer(this.str, false, true) ) {
+        destination.off = this.off;
+        destination.char = this.char;
+        destination.line = this.line;
+        destination.sl = this.sl;
+        destination.masked_values = this.masked_values;
+        return destination;
     }
 
     /**
