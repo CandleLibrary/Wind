@@ -85,3 +85,5 @@ Press h to open a hovercard with more details.
 
 #Api directory
 documents/api/*
+
+.nyc*

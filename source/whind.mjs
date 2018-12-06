@@ -1,294 +1,6 @@
-'use strict';
+import { SPACE, HORIZONTAL_TAB } from "./ascii_code_points";
 
-Object.defineProperty(exports, '__esModule', { value: true });
-
-const HORIZONTAL_TAB = 9;
-const SPACE = 32;
-
-/**
- * Lexer Jump table reference 
- * 0. NUMBER
- * 1. IDENTIFIER
- * 2. QUOTE STRING
- * 3. SPACE SET
- * 4. TAB SET
- * 5. CARIAGE RETURN
- * 6. LINEFEED
- * 7. SYMBOL
- * 8. OPERATOR
- * 9. OPEN BRACKET
- * 10. CLOSE BRACKET 
- * 11. DATA_LINK
- */ 
-const jump_table = [
-7, 	 	/* A */
-7, 	 	/* a */
-7, 	 	/* ACKNOWLEDGE */
-7, 	 	/* AMPERSAND */
-7, 	 	/* ASTERISK */
-7, 	 	/* AT */
-7, 	 	/* B */
-7, 	 	/* b */
-7, 	 	/* BACKSLASH */
-4, 	 	/* BACKSPACE */
-6, 	 	/* BELL */
-7, 	 	/* C */
-7, 	 	/* c */
-5, 	 	/* CANCEL */
-7, 	 	/* CARET */
-11, 	/* CARRIAGE_RETURN */
-7, 	 	/* CLOSE_CURLY */
-7, 	 	/* CLOSE_PARENTH */
-7, 	 	/* CLOSE_SQUARE */
-7, 	 	/* COLON */
-7, 	 	/* COMMA */
-7, 	 	/* d */
-7, 	 	/* D */
-7, 	 	/* DATA_LINK_ESCAPE */
-7, 	 	/* DELETE */
-7, 	 	/* DEVICE_CTRL_1 */
-7, 	 	/* DEVICE_CTRL_2 */
-7, 	 	/* DEVICE_CTRL_3 */
-7, 	 	/* DEVICE_CTRL_4 */
-7, 	 	/* DOLLAR */
-7, 	 	/* DOUBLE_QUOTE */
-7, 	 	/* e */
-3, 	 	/* E */
-8, 	 	/* EIGHT */
-2, 	 	/* END_OF_MEDIUM */
-7, 	 	/* END_OF_TRANSMISSION */
-7, 	 	/* END_OF_TRANSMISSION_BLOCK */
-8, 	 	/* END_OF_TXT */
-8, 	 	/* ENQUIRY */
-2, 	 	/* EQUAL */
-9, 	 	/* ESCAPE */
-10, 	 /* EXCLAMATION */
-8, 	 	/* f */
-8, 	 	/* F */
-7, 	 	/* FILE_SEPERATOR */
-7, 	 	/* FIVE */
-7, 	 	/* FORM_FEED */
-7, 	 	/* FORWARD_SLASH */
-0, 	 	/* FOUR */
-0, 	 	/* g */
-0, 	 	/* G */
-0, 	 	/* GRAVE */
-0, 	 	/* GREATER_THAN */
-0, 	 	/* GROUP_SEPERATOR */
-0, 	 	/* h */
-0, 	 	/* H */
-0, 	 	/* HASH */
-0, 	 	/* HORIZONTAL_TAB */
-8, 	 	/* HYPHEN */
-7, 	 	/* i */
-8, 	 	/* I */
-8, 	 	/* j */
-8, 	 	/* J */
-7, 	 	/* k */
-7, 	 	/* K */
-1, 	 	/* l */
-1, 	 	/* L */
-1, 	 	/* LESS_THAN */
-1, 	 	/* LINE_FEED */
-1, 	 	/* m */
-1, 	 	/* M */
-1, 	 	/* n */
-1, 	 	/* N */
-1, 	 	/* NEGATIVE_ACKNOWLEDGE */
-1, 	 	/* NINE */
-1, 	 	/* NULL */
-1, 	 	/* o */
-1, 	 	/* O */
-1, 	 	/* ONE */
-1, 	 	/* OPEN_CURLY */
-1, 	 	/* OPEN_PARENTH */
-1, 	 	/* OPEN_SQUARE */
-1, 	 	/* p */
-1, 	 	/* P */
-1, 	 	/* PERCENT */
-1, 	 	/* PERIOD */
-1, 	 	/* PLUS */
-1, 	 	/* q */
-1, 	 	/* Q */
-1, 	 	/* QMARK */
-1, 	 	/* QUOTE */
-9, 	 	/* r */
-7, 	 	/* R */
-10, 	/* RECORD_SEPERATOR */
-7, 	 	/* s */
-7, 	 	/* S */
-2, 	 	/* SEMICOLON */
-1, 	 	/* SEVEN */
-1, 	 	/* SHIFT_IN */
-1, 	 	/* SHIFT_OUT */
-1, 	 	/* SIX */
-1, 	 	/* SPACE */
-1, 	 	/* START_OF_HEADER */
-1, 	 	/* START_OF_TEXT */
-1, 	 	/* SUBSTITUTE */
-1, 	 	/* SYNCH_IDLE */
-1, 	 	/* t */
-1, 	 	/* T */
-1, 	 	/* THREE */
-1, 	 	/* TILDE */
-1, 	 	/* TWO */
-1, 	 	/* u */
-1, 	 	/* U */
-1, 	 	/* UNDER_SCORE */
-1, 	 	/* UNIT_SEPERATOR */
-1, 	 	/* v */
-1, 	 	/* V */
-1, 	 	/* VERTICAL_BAR */
-1, 	 	/* VERTICAL_TAB */
-1, 	 	/* w */
-1, 	 	/* W */
-1, 	 	/* x */
-1, 	 	/* X */
-9, 	 	/* y */
-7, 	 	/* Y */
-10,  	/* z */
-7,  	/* Z */
-7 		/* ZERO */
-];	
-
-/**
- * LExer Number and Identifier jump table reference
- * Number are masked by 12(4|8) and Identifiers are masked by 10(2|8)
- * entries marked as `0` are not evaluated as either being in the number set or the identifier set.
- * entries marked as `2` are in the identifier set but not the number set
- * entries marked as `4` are in the number set but not the identifier set
- * entries marked as `8` are in both number and identifier sets
- */
-const number_and_identifier_table = [
-0, 		/* A */
-0, 		/* a */
-0, 		/* ACKNOWLEDGE */
-0, 		/* AMPERSAND */
-0, 		/* ASTERISK */
-0, 		/* AT */
-0,		/* B */
-0,		/* b */
-0,		/* BACKSLASH */
-0,		/* BACKSPACE */
-0,		/* BELL */
-0,		/* C */
-0,		/* c */
-0,		/* CANCEL */
-0,		/* CARET */
-0,		/* CARRIAGE_RETURN */
-0,		/* CLOSE_CURLY */
-0,		/* CLOSE_PARENTH */
-0,		/* CLOSE_SQUARE */
-0,		/* COLON */
-0,		/* COMMA */
-0,		/* d */
-0,		/* D */
-0,		/* DATA_LINK_ESCAPE */
-0,		/* DELETE */
-0,		/* DEVICE_CTRL_1 */
-0,		/* DEVICE_CTRL_2 */
-0,		/* DEVICE_CTRL_3 */
-0,		/* DEVICE_CTRL_4 */
-0,		/* DOLLAR */
-0,		/* DOUBLE_QUOTE */
-0,		/* e */
-0,		/* E */
-0,		/* EIGHT */
-0,		/* END_OF_MEDIUM */
-0,		/* END_OF_TRANSMISSION */
-8,		/* END_OF_TRANSMISSION_BLOCK */
-0,		/* END_OF_TXT */
-0,		/* ENQUIRY */
-0,		/* EQUAL */
-0,		/* ESCAPE */
-0,		/* EXCLAMATION */
-0,		/* f */
-0,		/* F */
-0,		/* FILE_SEPERATOR */
-2,		/* FIVE */
-4,		/* FORM_FEED */
-0,		/* FORWARD_SLASH */
-8,		/* FOUR */
-8,		/* g */
-8,		/* G */
-8,		/* GRAVE */
-8,		/* GREATER_THAN */
-8,		/* GROUP_SEPERATOR */
-8,		/* h */
-8,		/* H */
-8,		/* HASH */
-8,		/* HORIZONTAL_TAB */
-0,		/* HYPHEN */
-0,		/* i */
-0,		/* I */
-0,		/* j */
-0,		/* J */
-0,		/* k */
-0,		/* K */
-2,		/* l */
-8,		/* L */
-2,		/* LESS_THAN */
-2,		/* LINE_FEED */
-8,		/* m */
-2,		/* M */
-2,		/* n */
-2,		/* N */
-2,		/* NEGATIVE_ACKNOWLEDGE */
-2,		/* NINE */
-2,		/* NULL */
-2,		/* o */
-2,		/* O */
-2,		/* ONE */
-8,		/* OPEN_CURLY */
-2,		/* OPEN_PARENTH */
-2,		/* OPEN_SQUARE */
-2,		/* p */
-2,		/* P */
-2,		/* PERCENT */
-2,		/* PERIOD */
-2,		/* PLUS */
-2,		/* q */
-8,		/* Q */
-2,		/* QMARK */
-2,		/* QUOTE */
-0,		/* r */
-0,		/* R */
-0,		/* RECORD_SEPERATOR */
-0,		/* s */
-2,		/* S */
-0,		/* SEMICOLON */
-2,		/* SEVEN */
-8,		/* SHIFT_IN */
-2,		/* SHIFT_OUT */
-2,		/* SIX */
-2,		/* SPACE */
-2,		/* START_OF_HEADER */
-2,		/* START_OF_TEXT */
-2,		/* SUBSTITUTE */
-2,		/* SYNCH_IDLE */
-2,		/* t */
-2,		/* T */
-2,		/* THREE */
-2,		/* TILDE */
-2,		/* TWO */
-8,		/* u */
-2,		/* U */
-2,		/* UNDER_SCORE */
-2,		/* UNIT_SEPERATOR */
-2,		/* v */
-2,		/* V */
-2,		/* VERTICAL_BAR */
-2,		/* VERTICAL_TAB */
-2,		/* w */
-8,		/* W */
-2,		/* x */
-2,		/* X */
-0,		/* y */
-0,		/* Y */
-0,		/* z */
-0,		/* Z */
-0		/* ZERO */
-];
+import { jump_table, number_and_identifier_table } from "./tables/basic";
 
 const number = 1,
     identifier = 2,
@@ -339,7 +51,7 @@ TOKEN_LENGTH_MASK = 0xFFFFFFC0,
 debruijnLUT = [ 
     0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 
     31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
-];
+]
 
 function getNumbrOfTrailingZeroBitsFromPowerOf2(value){
     return debruijnLUT[(value * 0x077CB531) >>> 27];
@@ -418,14 +130,13 @@ class Lexer {
      * Copies the Lexer.
      * @return     {Lexer}  Returns a new Lexer instance with the same property values.
      */
-    copy() {
-        let out = new Lexer(this.str, false, true);
-        out.off = this.off;
-        out.char = this.char;
-        out.line = this.line;
-        out.sl = this.sl;
-        out.masked_values = this.masked_values;
-        return out;
+    copy( destination = new Lexer(this.str, false, true) ) {
+        destination.off = this.off;
+        destination.char = this.char;
+        destination.line = this.line;
+        destination.sl = this.sl;
+        destination.masked_values = this.masked_values;
+        return destination;
     }
 
     /**
@@ -454,13 +165,14 @@ class Lexer {
      * @param {String} message - The error message.
      */
     throw (message) {
-        let t$$1 = ("________________________________________________"),
+        let t = ("________________________________________________"),
+            n = "\n",
             is_iws = (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "";
         this.IWS = false;
         let pk = this.copy();
         while (!pk.END && pk.ty !== Types.nl) { pk.next(); }
         let end = pk.off;
-        throw new Error(`${message} at ${this.line}:${this.char}\n${t$$1}\n${this.str.slice(this.off + this.tl + 1 - this.char, end)}\n${("").padStart(this.char - 2)}^\n${t$$1}\n${is_iws}`);
+        throw new Error(`${message} at ${this.line}:${this.char}\n${t}\n${this.str.slice(this.off + this.tl + 1 - this.char, end)}\n${("").padStart(this.char - 2)}^\n${t}\n${is_iws}`);
     }
 
     /**
@@ -480,7 +192,7 @@ class Lexer {
         this.tl = 0;
         this.char = 0;
         this.line = 0;
-        this.n();
+        this.n;
         return this;
     }
 
@@ -512,16 +224,16 @@ class Lexer {
         //Token builder
         let length = marker.tl;
         let off = marker.off + length;
-        let l$$1 = marker.sl;
+        let l = marker.sl;
         let IWS = marker.IWS;
         let type = symbol;
         let char = marker.char + length;
         let line = marker.line;
         let base = off;
 
-        if (off >= l$$1) {
+        if (off >= l) {
             length = 0;
-            base = l$$1;
+            base = l;
             char -= base - off;
             marker.type = type;
             marker.off = base;
@@ -543,7 +255,7 @@ class Lexer {
 
                 switch (jump_table[code]) {
                     case 0: //NUMBER
-                        while (++off < l$$1 && (12 & number_and_identifier_table[str.charCodeAt(off)])) {}
+                        while (++off < l && (12 & number_and_identifier_table[str.charCodeAt(off)])) {}
 
                         if (str[off] == "e" || str[off] == "E") {
                             off++;
@@ -560,7 +272,7 @@ class Lexer {
 
                         break;
                     case 1: //IDENTIFIER
-                        while (++off < l$$1 && ((10 & number_and_identifier_table[str.charCodeAt(off)]))) {}
+                        while (++off < l && ((10 & number_and_identifier_table[str.charCodeAt(off)]))) {}
                         type = identifier;
                         length = off - base;
                         break;
@@ -568,18 +280,18 @@ class Lexer {
                         if (this.PARSE_STRING) {
                             type = symbol;
                         } else {
-                            while (++off < l$$1 && str.charCodeAt(off) !== code) {}
+                            while (++off < l && str.charCodeAt(off) !== code) {}
                             type = string;
                             length = off - base + 1;
                         }
                         break;
                     case 3: //SPACE SET
-                        while (++off < l$$1 && str.charCodeAt(off) === SPACE) {}
+                        while (++off < l && str.charCodeAt(off) === SPACE) {}
                         type = white_space;
                         length = off - base;
                         break;
                     case 4: //TAB SET
-                        while (++off < l$$1 && str[off] === HORIZONTAL_TAB) {}
+                        while (++off < l && str[off] === HORIZONTAL_TAB) {}
                         type = white_space;
                         length = off - base;
                         break;
@@ -612,13 +324,13 @@ class Lexer {
             }
 
             if (IWS && (type & white_space_new_line)) {
-                if (off < l$$1) {
+                if (off < l) {
                     char += length;
                     type = symbol;
                     continue;
                 } else {
                     length = 0;
-                    base = l$$1;
+                    base = l;
                     char -= base - off;
                 }
             }
@@ -842,8 +554,8 @@ class Lexer {
      */
     get n() { return this.next(); }
 
-    get END(){ return (this.token_length+this.off) >= this.sl; }
-    set END(v$$1){}
+    get END(){ return this.off >= this.sl; }
+    set END(v){}
 
     get type(){
         return 1 << (this.masked_values & TYPE_MASK);
@@ -900,10 +612,11 @@ class Lexer {
 }
 
 function whind(string, INCLUDE_WHITE_SPACE_TOKENS = false) { return new Lexer(string, INCLUDE_WHITE_SPACE_TOKENS); }
+
 whind.constructor = Lexer;
 
 Lexer.types = Types;
 whind.types = Types;
 
-exports.Lexer = Lexer;
-exports.default = whind;
+export { Lexer };
+export default whind;

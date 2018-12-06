@@ -7,7 +7,8 @@ const test_string = `
 
     `;
 
-const whind = require("../build/whind_cjs.js").default;
+import whind from "../source/whind";
+
 const constr = whind.constructor;
 
 describe("Test", function() {
@@ -48,6 +49,21 @@ describe("Test", function() {
         lex.n.ty.should.equal(types.symbol);
         lex.n.END.should.equal(true);
     });
+
+    it("Finds the end of string without missing any tokens", function(){
+        let lex = whind("This is 'the' string");
+        let compare = ["This", "is", "'the'", "string"];
+        let i = 0;
+
+        while(!lex.END){
+            lex.tx.should.equal(compare[i]);
+            i++;
+            lex.n;
+        };
+
+        i.should.equal(4);
+
+    })
     /*
     it("Identifies \' in a abbreviation as part of the word.", function {
         let lex = new constr(`We're always glad to be of service. Let's never forget why we're here.`);
