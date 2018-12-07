@@ -65,19 +65,6 @@ typings/
 
 # Serverless directories
 .serverless
-© 2018 GitHub, Inc.
-Terms
-Privacy
-Security
-Status
-Help
-Contact GitHub
-API
-Training
-Shop
-Blog
-About
-Press h to open a hovercard with more details.
 
 #Build directory
 
@@ -87,3 +74,4 @@ Press h to open a hovercard with more details.
 documents/api/*
 
 .nyc*
+*.sublime-workspace

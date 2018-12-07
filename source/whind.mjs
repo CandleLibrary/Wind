@@ -51,7 +51,7 @@ TOKEN_LENGTH_MASK = 0xFFFFFFC0,
 debruijnLUT = [ 
     0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 
     31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
-]
+];
 
 function getNumbrOfTrailingZeroBitsFromPowerOf2(value){
     return debruijnLUT[(value * 0x077CB531) >>> 27];
@@ -458,7 +458,7 @@ class Lexer {
         if (marker.tx == "/") {
             if (marker.pk.tx == "*") {
                 marker.sync();
-                while (!marker.END && (marker.nexts().tx != "*" || marker.pk.tx != "/")) { /* NO OP */ }
+                while (!marker.END && (marker.next().tx != "*" || marker.pk.tx != "/")) { /* NO OP */ }
                 marker.sync().assert("/");
             } else if (marker.pk.tx == "/") {
                 let IWS = marker.IWS;
