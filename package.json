@@ -1,6 +1,6 @@
 {
   "name": "@candlefw/whind",
-  "version": "0.2.5a",
+  "version": "0.2.6",
   "description": "A Simple Tokenizer / Lexer",
   "main": "source/whind.mjs",
   "directories": {
