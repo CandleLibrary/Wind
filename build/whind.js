@@ -744,7 +744,7 @@ var whind = (function (exports) {
             if (marker.tx == "/") {
                 if (marker.pk.tx == "*") {
                     marker.sync();
-                    while (!marker.END && (marker.nexts().tx != "*" || marker.pk.tx != "/")) { /* NO OP */ }
+                    while (!marker.END && (marker.next().tx != "*" || marker.pk.tx != "/")) { /* NO OP */ }
                     marker.sync().assert("/");
                 } else if (marker.pk.tx == "/") {
                     let IWS = marker.IWS;

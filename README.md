@@ -54,6 +54,8 @@ lexer.ty == lexer.types.number  //=> true
 
 - __char__ (Read-Only) - *Number* <br>&ensp;  The char offset of the token relative to the `line`.
 
+- __CHARACTERS_ONLY__  - *Boolean* <br>&ensp;  If **true** the Lexer will only produce tokens that are one character in length;
+
 - __END__ (Read-Only) -  *Boolean* <br>&ensp;  If **true** the Lexer has reached the end of the input string.s
 
 - __IGNORE_WHITE_SPACE__  - *Boolean* <br>&ensp;  If **true** `white_space` and `new_line` tokens will not be generated.
