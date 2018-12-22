@@ -74,7 +74,7 @@ lexer.ty == lexer.types.number  //=> true
 
 - __string__ (Read-Only) - *String* <br>&ensp;  Returns the result of `slice()`
 
-- __string_length__ (Read-Only) - *Object* <br>&ensp;  The length of the remaining string to be parsed. Same as `lex.string_length - lex.off`.
+- __string_length__ (Read-Only) - *Number* <br>&ensp;  The length of the remaining string to be parsed. Same as `lex.string_length - lex.off`.
 
 - __text__ - *String* <br>&ensp;  The string value for the current token.
 
