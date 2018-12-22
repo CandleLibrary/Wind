@@ -62,7 +62,7 @@ lexer.ty == lexer.types.number  //=> true
 
 - __line__ (Read-Only) - *Number* <br>&ensp;  The index of the current line the token is located at.
 
-- __off__ - *Number* <br>&ensp;  The absolute index offset of the current token from the beginning of the input string.
+- __off__ - *Number* <br>&ensp;  The absolute index position of the current token measured from the beginning of the input string.
 
 - __p__ - *Whind Lexer* <br>&ensp;  A pointer cache to a peeking Lexer.
 
@@ -72,7 +72,9 @@ lexer.ty == lexer.types.number  //=> true
 
 - __str__ - *String* <br>&ensp;  The string that is being tokenized.
 
-- __string__ (Read-Only) - *String* <br>&ensp;  Returns the result of `slice()`.
+- __string__ (Read-Only) - *String* <br>&ensp;  Returns the result of `slice()`
+
+- __string_length__ (Read-Only) - *Object* <br>&ensp;  The length of the remaining string to be parsed. Same as `lex.string_length - lex.off`.
 
 - __text__ - *String* <br>&ensp;  The string value for the current token.
 
@@ -150,6 +152,8 @@ lexer.ty == lexer.types.number  //=> true
 - ___throw___ ( **message** ) <br>&ensp;  Throws a new Error with a custom `message` and information to indicate where in the input string the current token is positioned.
 
 - *String* - ___toString___ ( ) <br>&ensp;  Returns the result of `slice()`.
+
+- ___trim___ ( ) <br>&ensp;  Creates and returns new Lexer with leading and trailing whitespace and line terminator characters removed from the input string. 
 
 #### Alias Methods
 
