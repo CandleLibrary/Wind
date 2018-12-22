@@ -20,8 +20,6 @@
   "keywords": [
     "lexer",
     "string",
-    "parser",
-    "parse",
     "tokenizer"
   ],
   "author": "Anthony Weathersby",

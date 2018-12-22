@@ -331,7 +331,8 @@ var whind = (function (exports) {
     TYPE_MASK = 0xF,
     PARSE_STRING_MASK = 0x10,
     IGNORE_WHITESPACE_MASK = 0x20,
-    TOKEN_LENGTH_MASK = 0xFFFFFFC0,
+    CHARACTERS_ONLY_MASK = 0x40,
+    TOKEN_LENGTH_MASK = 0xFFFFFF80,
 
     //De Bruijn Sequence for finding index of right most bit set.
     //http://supertech.csail.mit.edu/papers/debruijn.pdf
@@ -615,8 +616,10 @@ var whind = (function (exports) {
                         type = symbol;
                         continue;
                     } else {
+                        //Trim white space from end of string
+                        base = l$$1 - length;
+                        marker.sl -= length;
                         length = 0;
-                        base = l$$1;
                         char -= base - off;
                     }
                 }
@@ -626,7 +629,7 @@ var whind = (function (exports) {
 
             marker.type = type;
             marker.off = base;
-            marker.tl = length;
+            marker.tl = (this.masked_values & CHARACTERS_ONLY_MASK) ? Math.min(1,length) : length;
             marker.char = char;
             marker.line = line;
 
@@ -675,7 +678,7 @@ var whind = (function (exports) {
 
             if (this.off < 0) this.throw(`Expecting ${text} got null`);
 
-            if (this.tx[this.off] == char[0])
+            if (this.ch == char[0])
                 this.next();
             else
                 this.throw(`Expecting "${char[0]}" got "${this.tx[this.off]}"`);
@@ -723,13 +726,11 @@ var whind = (function (exports) {
          * @return {String} A substring of the parsed string.
          * @public
          */
-        slice(start) {
+        slice(start = this.off) {
 
-            if (typeof start === "number" || typeof start === "object") {
-                if (start instanceof Lexer) start = start.off;
-                return (this.END) ? this.str.slice(start, this.sl) : this.str.slice(start, this.off);
-            }
-            return this.str.slice(this.off, this.sl);
+            if (start instanceof Lexer) start = start.off;
+
+            return this.str.slice(start, (this.off <= start) ? this.sl : this.off);
         }
 
         /**
@@ -741,12 +742,12 @@ var whind = (function (exports) {
 
             if (!(marker instanceof Lexer)) return marker;
 
-            if (marker.tx == "/") {
-                if (marker.pk.tx == "*") {
+            if (marker.ch == "/") {
+                if (marker.pk.ch == "*") {
                     marker.sync();
-                    while (!marker.END && (marker.next().tx != "*" || marker.pk.tx != "/")) { /* NO OP */ }
+                    while (!marker.END && (marker.next().ch != "*" || marker.pk.ch != "/")) { /* NO OP */ }
                     marker.sync().assert("/");
-                } else if (marker.pk.tx == "/") {
+                } else if (marker.pk.ch == "/") {
                     let IWS = marker.IWS;
                     while (marker.next().ty != types.new_line && !marker.END) { /* NO OP */ }
                     marker.IWS = IWS;
@@ -756,6 +757,33 @@ var whind = (function (exports) {
             }
 
             return marker;
+        }
+        trim(){
+            debugger
+            let lex = this.copy();
+
+            for(; lex.off < lex.sl; lex.off++){
+                let c = jump_table[lex.string.charCodeAt(lex.off)];
+
+                if(c > 2 && c < 7)
+                    continue;
+
+                break;
+            }
+
+            for(; lex.sl > lex.off; lex.sl--){
+                let c = jump_table[lex.string.charCodeAt(lex.sl-1)];
+
+                if(c > 2 && c < 7)
+                    continue;
+
+                break;
+            }
+
+            lex.token_length = 0;
+            lex.next();
+
+            return lex;
         }
 
 
@@ -840,6 +868,9 @@ var whind = (function (exports) {
          */
         get n() { return this.next(); }
 
+
+
+
         get END(){ return this.off >= this.sl; }
         set END(v$$1){}
 
@@ -861,16 +892,29 @@ var whind = (function (exports) {
             this.token_length = value;
         }
 
+
         get token_length(){
-            return ((this.masked_values & TOKEN_LENGTH_MASK) >> 6);
+            return ((this.masked_values & TOKEN_LENGTH_MASK) >> 7);
         }
 
         set token_length(value){
-            this.masked_values = (this.masked_values & ~TOKEN_LENGTH_MASK) | (((value << 6) | 0) & TOKEN_LENGTH_MASK); 
+            this.masked_values = (this.masked_values & ~TOKEN_LENGTH_MASK) | (((value << 7) | 0) & TOKEN_LENGTH_MASK); 
         }
 
         get IGNORE_WHITE_SPACE(){
             return this.IWS;
+        }
+
+        set IGNORE_WHITE_SPACE(bool){
+            this.iws = !!bool;
+        }
+
+        get CHARACTERS_ONLY(){
+            return !!(this.masked_values & CHARACTERS_ONLY_MASK);
+        }
+
+        set CHARACTERS_ONLY(boolean){
+            this.masked_values = (this.masked_values & ~CHARACTERS_ONLY_MASK) | ((boolean | 0) << 6); 
         }
 
         get IWS(){

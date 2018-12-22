@@ -39,22 +39,22 @@ const number = 1,
         white_space_new_line,
     },
 
-/*** MASKS ***/
+    /*** MASKS ***/
 
-TYPE_MASK = 0xF,
-PARSE_STRING_MASK = 0x10,
-IGNORE_WHITESPACE_MASK = 0x20,
-CHARACTERS_ONLY_MASK = 0x40,
-TOKEN_LENGTH_MASK = 0xFFFFFF80,
+    TYPE_MASK = 0xF,
+    PARSE_STRING_MASK = 0x10,
+    IGNORE_WHITESPACE_MASK = 0x20,
+    CHARACTERS_ONLY_MASK = 0x40,
+    TOKEN_LENGTH_MASK = 0xFFFFFF80,
 
-//De Bruijn Sequence for finding index of right most bit set.
-//http://supertech.csail.mit.edu/papers/debruijn.pdf
-debruijnLUT = [ 
-    0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 
-    31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
-];
+    //De Bruijn Sequence for finding index of right most bit set.
+    //http://supertech.csail.mit.edu/papers/debruijn.pdf
+    debruijnLUT = [
+        0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
+        31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
+    ];
 
-function getNumbrOfTrailingZeroBitsFromPowerOf2(value){
+function getNumbrOfTrailingZeroBitsFromPowerOf2(value) {
     return debruijnLUT[(value * 0x077CB531) >>> 27];
 }
 
@@ -111,7 +111,7 @@ class Lexer {
         /**
          * Flag to force the lexer to parse string contents
          */
-         this.PARSE_STRING = false;
+        this.PARSE_STRING = false;
 
         if (!PEEKING) this.next();
     }
@@ -131,7 +131,7 @@ class Lexer {
      * Copies the Lexer.
      * @return     {Lexer}  Returns a new Lexer instance with the same property values.
      */
-    copy( destination = new Lexer(this.str, false, true) ) {
+    copy(destination = new Lexer(this.str, false, true)) {
         destination.off = this.off;
         destination.char = this.char;
         destination.line = this.line;
@@ -343,13 +343,13 @@ class Lexer {
 
         marker.type = type;
         marker.off = base;
-        marker.tl = (this.masked_values & CHARACTERS_ONLY_MASK) ? Math.min(1,length) : length;
+        marker.tl = (this.masked_values & CHARACTERS_ONLY_MASK) ? Math.min(1, length) : length;
         marker.char = char;
         marker.line = line;
 
         return marker;
     }
-    
+
 
     /**
      * Proxy for Lexer.prototype.assert
@@ -473,21 +473,56 @@ class Lexer {
         return marker;
     }
 
-
     setString(string, RESET = true) {
         this.str = string;
         this.sl = string.length;
         if (RESET) this.resetHead();
     }
 
-    toString(){
+    toString() {
         return this.slice();
+    }
+
+    /**
+     * Returns new Whind Lexer that has leading and trailing whitespace characters removed from input. 
+     */
+    trim() {
+        let lex = this.copy();
+
+        for (; lex.off < lex.sl; lex.off++) {
+            let c = jump_table[lex.string.charCodeAt(lex.off)];
+
+            if (c > 2 && c < 7)
+                continue;
+
+            break;
+        }
+
+        for (; lex.sl > lex.off; lex.sl--) {
+            let c = jump_table[lex.string.charCodeAt(lex.sl - 1)];
+
+            if (c > 2 && c < 7)
+                continue;
+
+            break;
+        }
+
+        lex.token_length = 0;
+        lex.next();
+
+        return lex;
     }
 
     /*** Getters and Setters ***/
     get string() {
         return this.str;
     }
+
+    get string_length() {
+        return this.sl - this.off;
+    }
+
+    set string_length(s) {}
 
     /**
      * The current token in the form of a new Lexer with the current state.
@@ -512,7 +547,7 @@ class Lexer {
      * @readonly
      */
     get tx() { return this.text; }
-    
+
     /**
      * The string value of the current token.
      * @type {String}
@@ -555,65 +590,65 @@ class Lexer {
      */
     get n() { return this.next(); }
 
-    get END(){ return this.off >= this.sl; }
-    set END(v){}
+    get END() { return this.off >= this.sl; }
+    set END(v) {}
 
-    get type(){
+    get type() {
         return 1 << (this.masked_values & TYPE_MASK);
     }
 
-    set type(value){
+    set type(value) {
         //assuming power of 2 value.
 
-        this.masked_values = (this.masked_values & ~TYPE_MASK) | ((getNumbrOfTrailingZeroBitsFromPowerOf2(value)) & TYPE_MASK); 
+        this.masked_values = (this.masked_values & ~TYPE_MASK) | ((getNumbrOfTrailingZeroBitsFromPowerOf2(value)) & TYPE_MASK);
     }
 
-    get tl (){
+    get tl() {
         return this.token_length;
     }
 
-    set tl(value){
+    set tl(value) {
         this.token_length = value;
     }
 
-    get token_length(){
+    get token_length() {
         return ((this.masked_values & TOKEN_LENGTH_MASK) >> 7);
     }
 
-    set token_length(value){
-        this.masked_values = (this.masked_values & ~TOKEN_LENGTH_MASK) | (((value << 7) | 0) & TOKEN_LENGTH_MASK); 
+    set token_length(value) {
+        this.masked_values = (this.masked_values & ~TOKEN_LENGTH_MASK) | (((value << 7) | 0) & TOKEN_LENGTH_MASK);
     }
 
-    get IGNORE_WHITE_SPACE(){
+    get IGNORE_WHITE_SPACE() {
         return this.IWS;
     }
 
-    set IGNORE_WHITE_SPACE(bool){
+    set IGNORE_WHITE_SPACE(bool) {
         this.iws = !!bool;
     }
 
-    get CHARACTERS_ONLY(){
+    get CHARACTERS_ONLY() {
         return !!(this.masked_values & CHARACTERS_ONLY_MASK);
     }
 
-    set CHARACTERS_ONLY(boolean){
-        this.masked_values = (this.masked_values & ~CHARACTERS_ONLY_MASK) | ((boolean | 0) << 6); 
+    set CHARACTERS_ONLY(boolean) {
+        this.masked_values = (this.masked_values & ~CHARACTERS_ONLY_MASK) | ((boolean | 0) << 6);
     }
 
-    get IWS(){
+    get IWS() {
         return !!(this.masked_values & IGNORE_WHITESPACE_MASK);
     }
 
-    set IWS(boolean){
-        this.masked_values = (this.masked_values & ~IGNORE_WHITESPACE_MASK) | ((boolean | 0) << 5); 
+    set IWS(boolean) {
+        this.masked_values = (this.masked_values & ~IGNORE_WHITESPACE_MASK) | ((boolean | 0) << 5);
     }
 
-    get PARSE_STRING(){
+    get PARSE_STRING() {
         return !!(this.masked_values & PARSE_STRING_MASK);
     }
 
-    set PARSE_STRING(boolean){
-        this.masked_values = (this.masked_values & ~PARSE_STRING_MASK) | ((boolean | 0) << 4); 
+    set PARSE_STRING(boolean) {
+        this.masked_values = (this.masked_values & ~PARSE_STRING_MASK) | ((boolean | 0) << 4);
     }
 
     /**
