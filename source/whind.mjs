@@ -62,7 +62,7 @@ class Lexer {
 
     constructor(string = "", INCLUDE_WHITE_SPACE_TOKENS = false, PEEKING = false) {
 
-        if (typeof(string) !== "string") throw new Error("String value must be passed to Lexer");
+        if (typeof(string) !== "string") throw new Error(`String value must be passed to Lexer. A ${typeof(string)} was passed as the \`string\` argument.`);
 
         /**
          * The string that the Lexer tokenizes.
