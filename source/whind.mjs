@@ -159,44 +159,50 @@ class Lexer {
         return this;
     }
 
+    /**
+    Creates and error message with a diagrame illustrating the location of the error. 
+    */
+    errorMessage(message = ""){
+        const arrow = String.fromCharCode(0x2b89),
+            trs = String.fromCharCode(0x2500),
+            line = String.fromCharCode(0x2500),
+            thick_line = String.fromCharCode(0x2501),
+            line_number = "    " + this.line + ": ",
+            line_fill = line_number.length,
+            t = thick_line.repeat(line_fill + 48),
+            is_iws = (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "";
+        const pk = this.copy();
+        pk.IWS = false;
+        while (!pk.END && pk.ty !== Types.nl) { pk.next() }
+        const end = pk.off;
 
+        return `${message} at ${this.line}:${this.char}
+${t}
+${line_number+this.str.slice(this.off - this.char, end)}
+${line.repeat(this.char-1+line_fill)+trs+arrow}
+${t}
+${is_iws}`;
+    }
 
     /**
      * Will throw a new Error, appending the parsed string line and position information to the the error message passed into the function.
      * @instance
      * @public
      * @param {String} message - The error message.
+     * @param {Bool} DEFER - if true, returns an Error object instead of throwing.
      */
-    throw (message) {
-        const arrow = String.fromCharCode(0x2b89);
-        const trs = String.fromCharCode(0x2500);
-        const line = String.fromCharCode(0x2500);
-        const thick_line = String.fromCharCode(0x2501);
-        const line_number = "    " + this.line+": "
-        const line_fill = line_number.length;
-        let t = thick_line.repeat(line_fill+48),
-            n = "\n",
-            is_iws = (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "";
-        this.IWS = false;
-        let pk = this.copy();
-        while (!pk.END && pk.ty !== Types.nl) { pk.next(); }
-        let end = pk.off;
-
-        throw new Error(
-`${message} at ${this.line}:${this.char}
-${t}
-${line_number+this.str.slice(this.off - this.char, end)}
-${line.repeat(this.char-1+line_fill)+trs+arrow}
-${t}
-${is_iws}`
-);
+    throw (message, DEFER = false) {
+        const error = new Error(this.errorMessage(message));
+        if(DEFER)
+            return error;
+        throw error;
     }
 
     /**
      * Proxy for Lexer.prototype.reset
      * @public
      */
-    r() { return this.reset(); }
+    r() { return this.reset() }
 
     /**
      * Restore the Lexer back to it's initial state.
@@ -229,7 +235,7 @@ ${is_iws}`
      */
     next(marker = this) {
 
-        let str = marker.str;
+        const str = marker.str;
 
         if (marker.sl < 1) {
             marker.off = 0;
@@ -239,10 +245,11 @@ ${is_iws}`
         }
 
         //Token builder
+        const l = marker.sl,
+            IWS = marker.IWS;
+
         let length = marker.tl;
         let off = marker.off + length;
-        let l = marker.sl;
-        let IWS = marker.IWS;
         let type = symbol;
         let char = marker.char + length;
         let line = marker.line;
@@ -260,19 +267,19 @@ ${is_iws}`
             return marker;
         }
 
-        while (true) {
+        for (;;) {
 
             base = off;
 
             length = 1;
 
-            let code = str.charCodeAt(off);
+            const code = str.charCodeAt(off);
 
             if (code < 128) {
 
                 switch (jump_table[code]) {
                     case 0: //NUMBER
-                        while (++off < l && (12 & number_and_identifier_table[str.charCodeAt(off)])) {}
+                        while (++off < l && (12 & number_and_identifier_table[str.charCodeAt(off)])) ;
 
                         if (str[off] == "e" || str[off] == "E") {
                             off++;
@@ -289,7 +296,7 @@ ${is_iws}`
 
                         break;
                     case 1: //IDENTIFIER
-                        while (++off < l && ((10 & number_and_identifier_table[str.charCodeAt(off)]))) {}
+                        while (++off < l && ((10 & number_and_identifier_table[str.charCodeAt(off)]))) ;
                         type = identifier;
                         length = off - base;
                         break;
@@ -297,23 +304,24 @@ ${is_iws}`
                         if (this.PARSE_STRING) {
                             type = symbol;
                         } else {
-                            while (++off < l && str.charCodeAt(off) !== code) {}
+                            while (++off < l && str.charCodeAt(off) !== code) ;
                             type = string;
                             length = off - base + 1;
                         }
                         break;
                     case 3: //SPACE SET
-                        while (++off < l && str.charCodeAt(off) === SPACE) {}
+                        while (++off < l && str.charCodeAt(off) === SPACE) ;
                         type = white_space;
                         length = off - base;
                         break;
                     case 4: //TAB SET
-                        while (++off < l && str[off] === HORIZONTAL_TAB) {}
+                        while (++off < l && str[off] === HORIZONTAL_TAB) ;
                         type = white_space;
                         length = off - base;
                         break;
                     case 5: //CARIAGE RETURN
                         length = 2;
+                        //Intentional
                     case 6: //LINEFEED
                         type = new_line;
                         char = 0;
@@ -325,7 +333,6 @@ ${is_iws}`
                         break;
                     case 8: //OPERATOR
                         type = operator;
-
                         break;
                     case 9: //OPEN BRACKET
                         type = open_bracket;
@@ -397,7 +404,7 @@ ${is_iws}`
      * Proxy for Lexer.prototype.assertCharacter
      * @public
      */
-    aC(char) { return this.assertCharacter(char); }
+    aC(char) { return this.assertCharacter(char) }
     /**
      * Compares the character value of the current token to the value passed in. Advances to next token if the two are equal.
      * @public
@@ -406,7 +413,7 @@ ${is_iws}`
      */
     assertCharacter(char) {
 
-        if (this.off < 0) this.throw(`Expecting ${text} got null`);
+        if (this.off < 0) this.throw(`Expecting ${char[0]} got null`);
 
         if (this.ch == char[0])
             this.next();
@@ -448,7 +455,7 @@ ${is_iws}`
      * Proxy for Lexer.prototype.slice
      * @public
      */
-    s(start) { return this.slice(start); }
+    s(start) { return this.slice(start) }
 
     /**
      * Returns a slice of the parsed string beginning at `start` and ending at the current token.
@@ -478,8 +485,8 @@ ${is_iws}`
                 while (!marker.END && (marker.next().ch != "*" || marker.pk.ch != "/")) { /* NO OP */ }
                 marker.sync().assert("/");
             } else if (marker.pk.ch == "/") {
-                let IWS = marker.IWS;
-                while (marker.next().ty != types.new_line && !marker.END) { /* NO OP */ }
+                const IWS = marker.IWS;
+                while (marker.next().ty != Types.new_line && !marker.END) { /* NO OP */ }
                 marker.IWS = IWS;
                 marker.next();
             } else
@@ -503,10 +510,10 @@ ${is_iws}`
      * Returns new Whind Lexer that has leading and trailing whitespace characters removed from input. 
      */
     trim() {
-        let lex = this.copy();
+        const lex = this.copy();
 
         for (; lex.off < lex.sl; lex.off++) {
-            let c = jump_table[lex.string.charCodeAt(lex.off)];
+            const c = jump_table[lex.string.charCodeAt(lex.off)];
 
             if (c > 2 && c < 7)
                 continue;
@@ -515,7 +522,7 @@ ${is_iws}`
         }
 
         for (; lex.sl > lex.off; lex.sl--) {
-            let c = jump_table[lex.string.charCodeAt(lex.sl - 1)];
+            const c = jump_table[lex.string.charCodeAt(lex.sl - 1)];
 
             if (c > 2 && c < 7)
                 continue;
@@ -562,7 +569,7 @@ ${is_iws}`
      * @type {String}
      * @readonly
      */
-    get tx() { return this.text; }
+    get tx() { return this.text }
 
     /**
      * The string value of the current token.
@@ -580,7 +587,7 @@ ${is_iws}`
      * @public
      * @readonly
      */
-    get ty() { return this.type; }
+    get ty() { return this.type }
 
     /**
      * The current token's offset position from the start of the string.
@@ -598,15 +605,15 @@ ${is_iws}`
      * @readonly
      * @type {Lexer}
      */
-    get pk() { return this.peek(); }
+    get pk() { return this.peek() }
 
     /**
      * Proxy for Lexer.prototype.next
      * @public
      */
-    get n() { return this.next(); }
+    get n() { return this.next() }
 
-    get END() { return this.off >= this.sl; }
+    get END() { return this.off >= this.sl }
     set END(v) {}
 
     get type() {
@@ -675,7 +682,7 @@ ${is_iws}`
     }
 }
 
-function whind(string, INCLUDE_WHITE_SPACE_TOKENS = false) { return new Lexer(string, INCLUDE_WHITE_SPACE_TOKENS); }
+function whind(string, INCLUDE_WHITE_SPACE_TOKENS = false) { return new Lexer(string, INCLUDE_WHITE_SPACE_TOKENS) }
 
 whind.constructor = Lexer;
 

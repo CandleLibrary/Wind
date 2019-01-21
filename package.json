@@ -1,6 +1,6 @@
 {
   "name": "@candlefw/whind",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "A Simple Tokenizer / Lexer",
   "main": "source/whind.mjs",
   "directories": {
@@ -31,8 +31,47 @@
     "nyc": "^13.1.0",
     "rollup": "^0.67.3"
   },
-  "jshintConfig": {
-    "esversion": 6,
-    "unused": true
+  "eslintConfig": {
+    "parserOptions": {
+      "sourceType": "module",
+      "ecmaVersion": 2018
+    },
+    "env": {
+      "es6": true,
+      "browser": true,
+      "node": true
+    },
+    "extends": "eslint:recommended",
+    "rules": {
+      "no-fallthrough": [
+        "error",
+        {
+          "commentPattern": "[iI]ntentional( - [\\w\\W]*){0,1}"
+        }
+      ],
+      "semi-style": [
+        "error",
+        "last"
+      ],
+      "semi": [
+        "warn",
+        "always",
+        {
+          "omitLastInOneLineBlock": true
+        }
+      ],
+      "prefer-const": "warn",
+      "new-cap": [
+        "error"
+      ],
+      "padding-line-between-statements": [
+        "error",
+        {
+          "blankLine": "always",
+          "prev": "function",
+          "next": "*"
+        }
+      ]
+    }
   }
 }
