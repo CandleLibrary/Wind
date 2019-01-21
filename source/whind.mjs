@@ -159,6 +159,8 @@ class Lexer {
         return this;
     }
 
+
+
     /**
      * Will throw a new Error, appending the parsed string line and position information to the the error message passed into the function.
      * @instance
@@ -166,14 +168,28 @@ class Lexer {
      * @param {String} message - The error message.
      */
     throw (message) {
-        let t = ("________________________________________________"),
+        const arrow = String.fromCharCode(0x2b89);
+        const trs = String.fromCharCode(0x2500);
+        const line = String.fromCharCode(0x2500);
+        const thick_line = String.fromCharCode(0x2501);
+        const line_number = "    " + this.line+": "
+        const line_fill = line_number.length;
+        let t = thick_line.repeat(line_fill+48),
             n = "\n",
             is_iws = (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "";
         this.IWS = false;
         let pk = this.copy();
         while (!pk.END && pk.ty !== Types.nl) { pk.next(); }
         let end = pk.off;
-        throw new Error(`${message} at ${this.line}:${this.char}\n${t}\n${this.str.slice(this.off + this.tl + 1 - this.char, end)}\n${("").padStart(this.char - 2)}^\n${t}\n${is_iws}`);
+
+        throw new Error(
+`${message} at ${this.line}:${this.char}
+${t}
+${line_number+this.str.slice(this.off - this.char, end)}
+${line.repeat(this.char-1+line_fill)+trs+arrow}
+${t}
+${is_iws}`
+);
     }
 
     /**

@@ -326,22 +326,22 @@ var whind = (function (exports) {
             white_space_new_line,
         },
 
-    /*** MASKS ***/
+        /*** MASKS ***/
 
-    TYPE_MASK = 0xF,
-    PARSE_STRING_MASK = 0x10,
-    IGNORE_WHITESPACE_MASK = 0x20,
-    CHARACTERS_ONLY_MASK = 0x40,
-    TOKEN_LENGTH_MASK = 0xFFFFFF80,
+        TYPE_MASK = 0xF,
+        PARSE_STRING_MASK = 0x10,
+        IGNORE_WHITESPACE_MASK = 0x20,
+        CHARACTERS_ONLY_MASK = 0x40,
+        TOKEN_LENGTH_MASK = 0xFFFFFF80,
 
-    //De Bruijn Sequence for finding index of right most bit set.
-    //http://supertech.csail.mit.edu/papers/debruijn.pdf
-    debruijnLUT = [ 
-        0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 
-        31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
-    ];
+        //De Bruijn Sequence for finding index of right most bit set.
+        //http://supertech.csail.mit.edu/papers/debruijn.pdf
+        debruijnLUT = [
+            0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
+            31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
+        ];
 
-    function getNumbrOfTrailingZeroBitsFromPowerOf2(value){
+    function getNumbrOfTrailingZeroBitsFromPowerOf2(value) {
         return debruijnLUT[(value * 0x077CB531) >>> 27];
     }
 
@@ -349,7 +349,7 @@ var whind = (function (exports) {
 
         constructor(string = "", INCLUDE_WHITE_SPACE_TOKENS = false, PEEKING = false) {
 
-            if (typeof(string) !== "string") throw new Error("String value must be passed to Lexer");
+            if (typeof(string) !== "string") throw new Error(`String value must be passed to Lexer. A ${typeof(string)} was passed as the \`string\` argument.`);
 
             /**
              * The string that the Lexer tokenizes.
@@ -398,7 +398,7 @@ var whind = (function (exports) {
             /**
              * Flag to force the lexer to parse string contents
              */
-             this.PARSE_STRING = false;
+            this.PARSE_STRING = false;
 
             if (!PEEKING) this.next();
         }
@@ -418,7 +418,7 @@ var whind = (function (exports) {
          * Copies the Lexer.
          * @return     {Lexer}  Returns a new Lexer instance with the same property values.
          */
-        copy( destination = new Lexer(this.str, false, true) ) {
+        copy(destination = new Lexer(this.str, false, true)) {
             destination.off = this.off;
             destination.char = this.char;
             destination.line = this.line;
@@ -446,6 +446,8 @@ var whind = (function (exports) {
             return this;
         }
 
+
+
         /**
          * Will throw a new Error, appending the parsed string line and position information to the the error message passed into the function.
          * @instance
@@ -453,13 +455,27 @@ var whind = (function (exports) {
          * @param {String} message - The error message.
          */
         throw (message) {
-            let t$$1 = ("________________________________________________"),
+            const arrow = String.fromCharCode(0x2b89);
+            const trs = String.fromCharCode(0x2500);
+            const line = String.fromCharCode(0x2500);
+            const thick_line = String.fromCharCode(0x2501);
+            const line_number = "    " + this.line+": ";
+            const line_fill = line_number.length;
+            let t$$1 = thick_line.repeat(line_fill+48),
                 is_iws = (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "";
             this.IWS = false;
             let pk = this.copy();
             while (!pk.END && pk.ty !== Types.nl) { pk.next(); }
             let end = pk.off;
-            throw new Error(`${message} at ${this.line}:${this.char}\n${t$$1}\n${this.str.slice(this.off + this.tl + 1 - this.char, end)}\n${("").padStart(this.char - 2)}^\n${t$$1}\n${is_iws}`);
+
+            throw new Error(
+`${message} at ${this.line}:${this.char}
+${t$$1}
+${line_number+this.str.slice(this.off - this.char, end)}
+${line.repeat(this.char-1+line_fill)+trs+arrow}
+${t$$1}
+${is_iws}`
+    );
         }
 
         /**
@@ -629,13 +645,13 @@ var whind = (function (exports) {
 
             marker.type = type;
             marker.off = base;
-            marker.tl = (this.masked_values & CHARACTERS_ONLY_MASK) ? Math.min(1,length) : length;
+            marker.tl = (this.masked_values & CHARACTERS_ONLY_MASK) ? Math.min(1, length) : length;
             marker.char = char;
             marker.line = line;
 
             return marker;
         }
-        
+
 
         /**
          * Proxy for Lexer.prototype.assert
@@ -758,23 +774,36 @@ var whind = (function (exports) {
 
             return marker;
         }
-        trim(){
-            debugger
+
+        setString(string, RESET = true) {
+            this.str = string;
+            this.sl = string.length;
+            if (RESET) this.resetHead();
+        }
+
+        toString() {
+            return this.slice();
+        }
+
+        /**
+         * Returns new Whind Lexer that has leading and trailing whitespace characters removed from input. 
+         */
+        trim() {
             let lex = this.copy();
 
-            for(; lex.off < lex.sl; lex.off++){
-                let c = jump_table[lex.string.charCodeAt(lex.off)];
+            for (; lex.off < lex.sl; lex.off++) {
+                let c$$1 = jump_table[lex.string.charCodeAt(lex.off)];
 
-                if(c > 2 && c < 7)
+                if (c$$1 > 2 && c$$1 < 7)
                     continue;
 
                 break;
             }
 
-            for(; lex.sl > lex.off; lex.sl--){
-                let c = jump_table[lex.string.charCodeAt(lex.sl-1)];
+            for (; lex.sl > lex.off; lex.sl--) {
+                let c$$1 = jump_table[lex.string.charCodeAt(lex.sl - 1)];
 
-                if(c > 2 && c < 7)
+                if (c$$1 > 2 && c$$1 < 7)
                     continue;
 
                 break;
@@ -786,21 +815,16 @@ var whind = (function (exports) {
             return lex;
         }
 
-
-        setString(string, RESET = true) {
-            this.str = string;
-            this.sl = string.length;
-            if (RESET) this.resetHead();
-        }
-
-        toString(){
-            return this.slice();
-        }
-
         /*** Getters and Setters ***/
         get string() {
             return this.str;
         }
+
+        get string_length() {
+            return this.sl - this.off;
+        }
+
+        set string_length(s$$1) {}
 
         /**
          * The current token in the form of a new Lexer with the current state.
@@ -825,7 +849,7 @@ var whind = (function (exports) {
          * @readonly
          */
         get tx() { return this.text; }
-        
+
         /**
          * The string value of the current token.
          * @type {String}
@@ -868,69 +892,65 @@ var whind = (function (exports) {
          */
         get n() { return this.next(); }
 
+        get END() { return this.off >= this.sl; }
+        set END(v$$1) {}
 
-
-
-        get END(){ return this.off >= this.sl; }
-        set END(v$$1){}
-
-        get type(){
+        get type() {
             return 1 << (this.masked_values & TYPE_MASK);
         }
 
-        set type(value){
+        set type(value) {
             //assuming power of 2 value.
 
-            this.masked_values = (this.masked_values & ~TYPE_MASK) | ((getNumbrOfTrailingZeroBitsFromPowerOf2(value)) & TYPE_MASK); 
+            this.masked_values = (this.masked_values & ~TYPE_MASK) | ((getNumbrOfTrailingZeroBitsFromPowerOf2(value)) & TYPE_MASK);
         }
 
-        get tl (){
+        get tl() {
             return this.token_length;
         }
 
-        set tl(value){
+        set tl(value) {
             this.token_length = value;
         }
 
-
-        get token_length(){
+        get token_length() {
             return ((this.masked_values & TOKEN_LENGTH_MASK) >> 7);
         }
 
-        set token_length(value){
-            this.masked_values = (this.masked_values & ~TOKEN_LENGTH_MASK) | (((value << 7) | 0) & TOKEN_LENGTH_MASK); 
+        set token_length(value) {
+            this.masked_values = (this.masked_values & ~TOKEN_LENGTH_MASK) | (((value << 7) | 0) & TOKEN_LENGTH_MASK);
         }
 
-        get IGNORE_WHITE_SPACE(){
+        get IGNORE_WHITE_SPACE() {
             return this.IWS;
         }
 
-        set IGNORE_WHITE_SPACE(bool){
+        set IGNORE_WHITE_SPACE(bool) {
             this.iws = !!bool;
         }
 
-        get CHARACTERS_ONLY(){
+        get CHARACTERS_ONLY() {
             return !!(this.masked_values & CHARACTERS_ONLY_MASK);
         }
 
-        set CHARACTERS_ONLY(boolean){
-            this.masked_values = (this.masked_values & ~CHARACTERS_ONLY_MASK) | ((boolean | 0) << 6); 
+        set CHARACTERS_ONLY(boolean) {
+            this.masked_values = (this.masked_values & ~CHARACTERS_ONLY_MASK) | ((boolean | 0) << 6);
         }
 
-        get IWS(){
+        get IWS() {
             return !!(this.masked_values & IGNORE_WHITESPACE_MASK);
         }
 
-        set IWS(boolean){
-            this.masked_values = (this.masked_values & ~IGNORE_WHITESPACE_MASK) | ((boolean | 0) << 5); 
+        set IWS(boolean) {
+            this.masked_values = (this.masked_values & ~IGNORE_WHITESPACE_MASK) | ((boolean | 0) << 5);
         }
 
-        get PARSE_STRING(){
+        get PARSE_STRING() {
             return !!(this.masked_values & PARSE_STRING_MASK);
         }
 
-        set PARSE_STRING(boolean){
-            this.masked_values = (this.masked_values & ~PARSE_STRING_MASK) | ((boolean | 0) << 4); 
+        set PARSE_STRING(boolean) {
+            this.masked_values = (this.masked_values & ~PARSE_STRING_MASK) | ((boolean | 0) << 4);
         }
 
         /**
