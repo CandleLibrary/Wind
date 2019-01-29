@@ -178,7 +178,7 @@ class Lexer {
 
         return `${message} at ${this.line}:${this.char}
 ${t}
-${line_number+this.str.slice(this.off - this.char, end)}
+${line_number+this.str.slice(Math.max(this.off - this.char, 0), end)}
 ${line.repeat(this.char-1+line_fill)+trs+arrow}
 ${t}
 ${is_iws}`;
