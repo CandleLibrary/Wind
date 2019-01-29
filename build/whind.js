@@ -465,7 +465,7 @@ var whind = (function (exports) {
 
             return `${message} at ${this.line}:${this.char}
 ${t$$1}
-${line_number+this.str.slice(this.off - this.char, end)}
+${line_number+this.str.slice(Math.max(this.off - this.char, 0), end)}
 ${line.repeat(this.char-1+line_fill)+trs+arrow}
 ${t$$1}
 ${is_iws}`;
@@ -522,25 +522,26 @@ ${is_iws}`;
          */
         next(marker = this) {
 
-            const str = marker.str;
-
             if (marker.sl < 1) {
                 marker.off = 0;
                 marker.type = 32768;
                 marker.tl = 0;
+                marker.line = 0;
+                marker.char = 0;
                 return marker;
             }
 
             //Token builder
             const l$$1 = marker.sl,
+                str = marker.str,
                 IWS = marker.IWS;
 
-            let length = marker.tl;
-            let off = marker.off + length;
-            let type = symbol;
-            let char = marker.char + length;
-            let line = marker.line;
-            let base = off;
+            let length = marker.tl,
+                off = marker.off + length,
+                type = symbol,
+                char = marker.char + length,
+                line = marker.line,
+                base = off;
 
             if (off >= l$$1) {
                 length = 0;
