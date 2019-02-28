@@ -162,7 +162,7 @@ class Lexer {
     /**
     Creates and error message with a diagrame illustrating the location of the error. 
     */
-    errorMessage(message = ""){
+    errorMessage(message = "") {
         const arrow = String.fromCharCode(0x2b89),
             trs = String.fromCharCode(0x2500),
             line = String.fromCharCode(0x2500),
@@ -193,7 +193,7 @@ ${is_iws}`;
      */
     throw (message, DEFER = false) {
         const error = new Error(this.errorMessage(message));
-        if(DEFER)
+        if (DEFER)
             return error;
         throw error;
     }
@@ -268,101 +268,132 @@ ${is_iws}`;
             return marker;
         }
 
-        for (;;) {
+        const USE_CUSTOM_SYMBOLS = !!this.symbol_map;
+        let NORMAL_PARSE = true;
 
-            base = off;
+        if (USE_CUSTOM_SYMBOLS) {
 
-            length = 1;
+            let code = str.charCodeAt(off);
+            let off2 = off;
+            let map = this.symbol_map,
+                m;
+            let i = 0;
 
-            const code = str.charCodeAt(off);
+            while(code == 32 && IWS)
+                (code = str.charCodeAt(++off2), off++);
 
-            if (code < 128) {
+            while ((m = map.get(code))) {
+                map = m;
+                off2 += 1;
+                code = str.charCodeAt(off2);
+            }
 
-                switch (jump_table[code]) {
-                    case 0: //NUMBER
-                        while (++off < l && (12 & number_and_identifier_table[str.charCodeAt(off)])) ;
+            if (map.IS_SYM) {
+               NORMAL_PARSE = false;
+               length = off2 - off;
+               char += length;
+            }
+        }
 
-                        if (str[off] == "e" || str[off] == "E") {
-                            off++;
-                            if (str[off] == "-") off++;
-                            marker.off = off;
-                            marker.tl = 0;
-                            marker.next();
-                            off = marker.off + marker.tl;
-                            //Add e to the number string
-                        }
+        if (NORMAL_PARSE) {
 
-                        type = number;
-                        length = off - base;
 
-                        break;
-                    case 1: //IDENTIFIER
-                        while (++off < l && ((10 & number_and_identifier_table[str.charCodeAt(off)]))) ;
-                        type = identifier;
-                        length = off - base;
-                        break;
-                    case 2: //QUOTED STRING
-                        if (this.PARSE_STRING) {
+            for (;;) {
+
+                base = off;
+
+                length = 1;
+
+                const code = str.charCodeAt(off);
+
+                if (code < 128) {
+
+                    switch (jump_table[code]) {
+                        case 0: //NUMBER
+                            while (++off < l && (12 & number_and_identifier_table[str.charCodeAt(off)]));
+
+                            if (str[off] == "e" || str[off] == "E") {
+                                off++;
+                                if (str[off] == "-") off++;
+                                marker.off = off;
+                                marker.tl = 0;
+                                marker.next();
+                                off = marker.off + marker.tl;
+                                //Add e to the number string
+                            }
+
+                            type = number;
+                            length = off - base;
+
+                            break;
+                        case 1: //IDENTIFIER
+                            while (++off < l && ((10 & number_and_identifier_table[str.charCodeAt(off)])));
+                            type = identifier;
+                            length = off - base;
+                            break;
+                        case 2: //QUOTED STRING
+                            if (this.PARSE_STRING) {
+                                type = symbol;
+                            } else {
+                                while (++off < l && str.charCodeAt(off) !== code);
+                                type = string;
+                                length = off - base + 1;
+                            }
+                            break;
+                        case 3: //SPACE SET
+                            while (++off < l && str.charCodeAt(off) === SPACE);
+                            type = white_space;
+                            length = off - base;
+                            break;
+                        case 4: //TAB SET
+                            while (++off < l && str[off] === HORIZONTAL_TAB);
+                            type = white_space;
+                            length = off - base;
+                            break;
+                        case 5: //CARIAGE RETURN
+                            length = 2;
+                            //Intentional
+                        case 6: //LINEFEED
+                            type = new_line;
+                            char = 0;
+                            line++;
+                            off += length;
+                            break;
+                        case 7: //SYMBOL
                             type = symbol;
-                        } else {
-                            while (++off < l && str.charCodeAt(off) !== code) ;
-                            type = string;
-                            length = off - base + 1;
-                        }
-                        break;
-                    case 3: //SPACE SET
-                        while (++off < l && str.charCodeAt(off) === SPACE) ;
-                        type = white_space;
-                        length = off - base;
-                        break;
-                    case 4: //TAB SET
-                        while (++off < l && str[off] === HORIZONTAL_TAB) ;
-                        type = white_space;
-                        length = off - base;
-                        break;
-                    case 5: //CARIAGE RETURN
-                        length = 2;
-                        //Intentional
-                    case 6: //LINEFEED
-                        type = new_line;
-                        char = 0;
-                        line++;
-                        off += length;
-                        break;
-                    case 7: //SYMBOL
+                            break;
+                        case 8: //OPERATOR
+                            type = operator;
+                            break;
+                        case 9: //OPEN BRACKET
+                            type = open_bracket;
+                            break;
+                        case 10: //CLOSE BRACKET
+                            type = close_bracket;
+                            break;
+                        case 11: //Data Link Escape
+                            type = data_link;
+                            length = 4; //Stores two UTF16 values and a data link sentinel
+                            break;
+                    }
+                }
+
+                if (IWS && (type & white_space_new_line)) {
+                    if (off < l) {
+                        char += length;
                         type = symbol;
-                        break;
-                    case 8: //OPERATOR
-                        type = operator;
-                        break;
-                    case 9: //OPEN BRACKET
-                        type = open_bracket;
-                        break;
-                    case 10: //CLOSE BRACKET
-                        type = close_bracket;
-                        break;
-                    case 11: //Data Link Escape
-                        type = data_link;
-                        length = 4; //Stores two UTF16 values and a data link sentinel
-                        break;
+                        continue;
+                    } else {
+                        //Trim white space from end of string
+                        base = l - length;
+                        marker.sl -= length;
+                        length = 0;
+                        char -= base - off;
+                    }
                 }
-            }
 
-            if (IWS && (type & white_space_new_line)) {
-                if (off < l) {
-                    char += length;
-                    type = symbol;
-                    continue;
-                } else {
-                    //Trim white space from end of string
-                    base = l - length;
-                    marker.sl -= length;
-                    length = 0;
-                    char -= base - off;
-                }
+                break;
             }
-
-            break;
         }
 
         marker.type = type;
@@ -537,6 +568,25 @@ ${is_iws}`;
         return lex;
     }
 
+    /** Adds symbol to symbol_map. This allows custom symbols to be defined and tokenized by parser. **/
+    addSymbol(sym) {
+        if (!this.symbol_map)
+            this.symbol_map = new Map;
+
+
+        let map = this.symbol_map;
+
+        for (let i = 0; i < sym.length; i++) {
+            let code = sym.charCodeAt(i);
+            let m = map.get(code);
+            if (!m){
+                m = map.set(code, new Map).get(code);
+            }
+            map = m;
+        }
+        map.IS_SYM = true;
+    }
+
     /*** Getters and Setters ***/
     get string() {
         return this.str;
@@ -623,7 +673,6 @@ ${is_iws}`;
 
     set type(value) {
         //assuming power of 2 value.
-
         this.masked_values = (this.masked_values & ~TYPE_MASK) | ((getNumbrOfTrailingZeroBitsFromPowerOf2(value)) & TYPE_MASK);
     }
 
