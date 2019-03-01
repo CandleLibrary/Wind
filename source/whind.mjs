@@ -290,6 +290,7 @@ ${is_iws}`;
 
             if (map.IS_SYM) {
                NORMAL_PARSE = false;
+               base = off;
                length = off2 - off;
                char += length;
             }
