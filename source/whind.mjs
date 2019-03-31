@@ -54,9 +54,7 @@ const number = 1,
         31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
     ];
 
-function getNumbrOfTrailingZeroBitsFromPowerOf2(value) {
-    return debruijnLUT[(value * 0x077CB531) >>> 27];
-}
+const  getNumbrOfTrailingZeroBitsFromPowerOf2 = (value) => debruijnLUT[(value * 0x077CB531) >>> 27];
 
 class Lexer {
 
