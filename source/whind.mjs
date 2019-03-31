@@ -541,29 +541,57 @@ ${is_iws}`;
 
     /**
      * Returns new Whind Lexer that has leading and trailing whitespace characters removed from input. 
+     * leave_leading_amount - Maximum amount of leading space caracters to leave behind. Default is zero
+     * leave_trailing_amount - Maximum amount of trailing space caracters to leave behind. Default is zero
      */
-    trim() {
+    trim(leave_leading_amount = 0, leave_trailing_amount = leave_leading_amount) {
         const lex = this.copy();
+
+        let space_count = 0,
+            off = lex.off;
 
         for (; lex.off < lex.sl; lex.off++) {
             const c = jump_table[lex.string.charCodeAt(lex.off)];
 
-            if (c > 2 && c < 7)
+            if (c > 2 && c < 7) {
+
+                if (space_count > leave_leading_amount) {
+                    off++;
+                } else {
+                    space_count++;
+                }
                 continue;
+            }
 
             break;
         }
+
+        lex.off = off;
+        space_count = 0;
+        off = lex.sl;
 
         for (; lex.sl > lex.off; lex.sl--) {
             const c = jump_table[lex.string.charCodeAt(lex.sl - 1)];
 
-            if (c > 2 && c < 7)
+            if (c > 2 && c < 7) {
+                if (space_count > leave_trailing_amount) {
+                    off--;
+                } else {
+                    space_count++;
+                }
                 continue;
+            }
 
             break;
         }
 
+        lex.sl = off;
+
+        if (leave_leading_amount > 0)
+            lex.IWS = false;
+
         lex.token_length = 0;
+
         lex.next();
 
         return lex;
