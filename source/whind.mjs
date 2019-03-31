@@ -279,7 +279,7 @@ ${is_iws}`;
                 m;
             let i = 0;
 
-            while(code == 32 && IWS)
+            while (code == 32 && IWS)
                 (code = str.charCodeAt(++off2), off++);
 
             while ((m = map.get(code))) {
@@ -289,10 +289,10 @@ ${is_iws}`;
             }
 
             if (map.IS_SYM) {
-               NORMAL_PARSE = false;
-               base = off;
-               length = off2 - off;
-               char += length;
+                NORMAL_PARSE = false;
+                base = off;
+                length = off2 - off;
+                char += length;
             }
         }
 
@@ -313,7 +313,7 @@ ${is_iws}`;
                         case 0: //NUMBER
                             while (++off < l && (12 & number_and_identifier_table[str.charCodeAt(off)]));
 
-                            if (str[off] == "e" || str[off] == "E") {
+                            if ((str[off] == "e" || str[off] == "E") && (12 & number_and_identifier_table[str.charCodeAt(off + 1)])) {
                                 off++;
                                 if (str[off] == "-") off++;
                                 marker.off = off;
@@ -580,7 +580,7 @@ ${is_iws}`;
         for (let i = 0; i < sym.length; i++) {
             let code = sym.charCodeAt(i);
             let m = map.get(code);
-            if (!m){
+            if (!m) {
                 m = map.set(code, new Map).get(code);
             }
             map = m;
