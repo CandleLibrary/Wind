@@ -829,6 +829,7 @@ ${is_iws}`;
          * leave_trailing_amount - Maximum amount of trailing space caracters to leave behind. Default is zero
          */
         trim(leave_leading_amount = 0, leave_trailing_amount = leave_leading_amount) {
+
             const lex = this.copy();
 
             let space_count = 0,
@@ -839,7 +840,7 @@ ${is_iws}`;
 
                 if (c$$1 > 2 && c$$1 < 7) {
 
-                    if (space_count > leave_leading_amount) {
+                    if (space_count >= leave_leading_amount) {
                         off++;
                     } else {
                         space_count++;
@@ -858,7 +859,7 @@ ${is_iws}`;
                 const c$$1 = jump_table[lex.string.charCodeAt(lex.sl - 1)];
 
                 if (c$$1 > 2 && c$$1 < 7) {
-                    if (space_count > leave_trailing_amount) {
+                    if (space_count >= leave_trailing_amount) {
                         off--;
                     } else {
                         space_count++;

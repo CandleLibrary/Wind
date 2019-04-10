@@ -553,7 +553,7 @@ ${is_iws}`;
 
             if (c > 2 && c < 7) {
 
-                if (space_count > leave_leading_amount) {
+                if (space_count >= leave_leading_amount) {
                     off++;
                 } else {
                     space_count++;
@@ -572,7 +572,7 @@ ${is_iws}`;
             const c = jump_table[lex.string.charCodeAt(lex.sl - 1)];
 
             if (c > 2 && c < 7) {
-                if (space_count > leave_trailing_amount) {
+                if (space_count >= leave_trailing_amount) {
                     off--;
                 } else {
                     space_count++;
