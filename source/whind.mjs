@@ -759,6 +759,8 @@ ${is_iws}`;
     }
 }
 
+Lexer.prototype.addCharacter = Lexer.prototype.addSymbol;
+
 function whind(string, INCLUDE_WHITE_SPACE_TOKENS = false) { return new Lexer(string, INCLUDE_WHITE_SPACE_TOKENS) }
 
 whind.constructor = Lexer;
