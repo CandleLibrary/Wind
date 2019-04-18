@@ -840,7 +840,7 @@ ${is_iws}`;
 
             if (c$$1 > 2 && c$$1 < 7) {
 
-                if (space_count > leave_leading_amount) {
+                if (space_count >= leave_leading_amount) {
                     off++;
                 } else {
                     space_count++;
@@ -859,7 +859,7 @@ ${is_iws}`;
             const c$$1 = jump_table[lex.string.charCodeAt(lex.sl - 1)];
 
             if (c$$1 > 2 && c$$1 < 7) {
-                if (space_count > leave_trailing_amount) {
+                if (space_count >= leave_trailing_amount) {
                     off--;
                 } else {
                     space_count++;
@@ -1045,6 +1045,8 @@ ${is_iws}`;
         return Types;
     }
 }
+
+Lexer.prototype.addCharacter = Lexer.prototype.addSymbol;
 
 function whind(string, INCLUDE_WHITE_SPACE_TOKENS = false) { return new Lexer(string, INCLUDE_WHITE_SPACE_TOKENS) }
 

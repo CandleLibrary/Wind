@@ -829,7 +829,6 @@ ${is_iws}`;
          * leave_trailing_amount - Maximum amount of trailing space caracters to leave behind. Default is zero
          */
         trim(leave_leading_amount = 0, leave_trailing_amount = leave_leading_amount) {
-
             const lex = this.copy();
 
             let space_count = 0,
@@ -1045,6 +1044,8 @@ ${is_iws}`;
             return Types;
         }
     }
+
+    Lexer.prototype.addCharacter = Lexer.prototype.addSymbol;
 
     function whind(string, INCLUDE_WHITE_SPACE_TOKENS = false) { return new Lexer(string, INCLUDE_WHITE_SPACE_TOKENS) }
 
