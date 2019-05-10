@@ -172,12 +172,18 @@ class Lexer {
         const pk = this.copy();
         pk.IWS = false;
         while (!pk.END && pk.ty !== Types.nl) { pk.next() }
-        const end = pk.off;
+        const end = (pk.END) ? this.str.length : pk.off ;
 
-        return `${message} at ${this.line}:${this.char}
+    console.log(end)
+
+    console.log(this.line, this.char, this.off, line_fill, end,)
+    let v = "", length = 0;
+    v = this.str.slice(this.off-this.char, end);
+    length = this.char;
+    return `${message} at ${this.line}:${this.char}
 ${t}
-${line_number+this.str.slice(Math.max(this.off - this.char, 0), end)}
-${line.repeat(this.char-1+line_fill)+trs+arrow}
+${line_number+v}
+${line.repeat(length+line_fill)+arrow}
 ${t}
 ${is_iws}`;
     }
@@ -250,18 +256,19 @@ ${is_iws}`;
         let length = marker.tl,
             off = marker.off + length,
             type = symbol,
-            char = marker.char + length,
             line = marker.line,
-            base = off;
+            base = off,
+            char = marker.char,
+            root = marker.off;
 
         if (off >= l) {
             length = 0;
             base = l;
-            char -= base - off;
+            //char -= base - off;
+            marker.char = char + (base - marker.off);
             marker.type = type;
             marker.off = base;
-            marker.tl = length;
-            marker.char = char;
+            marker.tl = 0;
             marker.line = line;
             return marker;
         }
@@ -290,12 +297,11 @@ ${is_iws}`;
                 NORMAL_PARSE = false;
                 base = off;
                 length = off2 - off;
-                char += length;
+                //char += length;
             }
         }
 
         if (NORMAL_PARSE) {
-
 
             for (;;) {
 
@@ -351,12 +357,14 @@ ${is_iws}`;
                             break;
                         case 5: //CARIAGE RETURN
                             length = 2;
-                            //Intentional
                         case 6: //LINEFEED
+                            //Intentional
                             type = new_line;
-                            char = 0;
                             line++;
                             off += length;
+                            char = 0;
+                            root = off;
+                            base = off;
                             break;
                         case 7: //SYMBOL
                             type = symbol;
@@ -375,22 +383,22 @@ ${is_iws}`;
                             length = 4; //Stores two UTF16 values and a data link sentinel
                             break;
                     }
+                }else{
+                    break;
                 }
 
                 if (IWS && (type & white_space_new_line)) {
                     if (off < l) {
-                        char += length;
-                        type = symbol;
+                        //type = symbol;
+                        //off += length;
                         continue;
                     } else {
                         //Trim white space from end of string
-                        base = l - length;
-                        marker.sl -= length;
-                        length = 0;
-                        char -= base - off;
+                        //base = l - off;
+                        //marker.sl -= off;
+                        //length = 0;
                     }
                 }
-
                 break;
             }
         }
@@ -398,7 +406,7 @@ ${is_iws}`;
         marker.type = type;
         marker.off = base;
         marker.tl = (this.masked_values & CHARACTERS_ONLY_MASK) ? Math.min(1, length) : length;
-        marker.char = char;
+        marker.char = char + base - root;
         marker.line = line;
 
         return marker;
