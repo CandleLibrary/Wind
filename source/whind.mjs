@@ -176,14 +176,14 @@ class Lexer {
 
     console.log(end)
 
-    console.log(this.line, this.char, this.off, line_fill, end,)
+    console.log(this.line, this.char, this.off, line_fill, end,this.off-this.char+((this.line > 0) ? 1 :0))
     let v = "", length = 0;
-    v = this.str.slice(this.off-this.char, end);
+    v = this.str.slice(this.off-this.char+((this.line > 0) ? 1 :0), end);
     length = this.char;
     return `${message} at ${this.line}:${this.char}
 ${t}
 ${line_number+v}
-${line.repeat(length+line_fill)+arrow}
+${line.repeat(length+line_fill-((this.line > 0) ? 1 :0))+arrow}
 ${t}
 ${is_iws}`;
     }
@@ -361,10 +361,10 @@ ${is_iws}`;
                             //Intentional
                             type = new_line;
                             line++;
+                            base = off;
+                            root = off;
                             off += length;
                             char = 0;
-                            root = off;
-                            base = off;
                             break;
                         case 7: //SYMBOL
                             type = symbol;
@@ -389,7 +389,7 @@ ${is_iws}`;
 
                 if (IWS && (type & white_space_new_line)) {
                     if (off < l) {
-                        //type = symbol;
+                        type = symbol;
                         //off += length;
                         continue;
                     } else {
@@ -408,7 +408,6 @@ ${is_iws}`;
         marker.tl = (this.masked_values & CHARACTERS_ONLY_MASK) ? Math.min(1, length) : length;
         marker.char = char + base - root;
         marker.line = line;
-
         return marker;
     }
 
