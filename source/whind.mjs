@@ -174,8 +174,6 @@ class Lexer {
         while (!pk.END && pk.ty !== Types.nl) { pk.next() }
         const end = (pk.END) ? this.str.length : pk.off ;
 
-    console.log(end)
-
     console.log(this.line, this.char, this.off, line_fill, end,this.off-this.char+((this.line > 0) ? 1 :0))
     let v = "", length = 0;
     v = this.str.slice(this.off-this.char+((this.line > 0) ? 1 :0), end);

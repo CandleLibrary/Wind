@@ -449,7 +449,6 @@ var whind = (function (exports) {
         */
         errorMessage(message = "") {
             const arrow = String.fromCharCode(0x2b89),
-                trs = String.fromCharCode(0x2500),
                 line = String.fromCharCode(0x2500),
                 thick_line = String.fromCharCode(0x2501),
                 line_number = "    " + this.line + ": ",
@@ -459,12 +458,18 @@ var whind = (function (exports) {
             const pk = this.copy();
             pk.IWS = false;
             while (!pk.END && pk.ty !== Types.nl) { pk.next(); }
-            const end = pk.off;
+            const end = (pk.END) ? this.str.length : pk.off ;
 
-            return `${message} at ${this.line}:${this.char}
+        console.log(end);
+
+        console.log(this.line, this.char, this.off, line_fill, end,this.off-this.char+((this.line > 0) ? 1 :0));
+        let v$$1 = "", length = 0;
+        v$$1 = this.str.slice(this.off-this.char+((this.line > 0) ? 1 :0), end);
+        length = this.char;
+        return `${message} at ${this.line}:${this.char}
 ${t$$1}
-${line_number+this.str.slice(Math.max(this.off - this.char, 0), end)}
-${line.repeat(this.char-1+line_fill)+trs+arrow}
+${line_number+v$$1}
+${line.repeat(length+line_fill-((this.line > 0) ? 1 :0))+arrow}
 ${t$$1}
 ${is_iws}`;
         }
@@ -537,18 +542,19 @@ ${is_iws}`;
             let length = marker.tl,
                 off = marker.off + length,
                 type = symbol,
-                char = marker.char + length,
                 line = marker.line,
-                base = off;
+                base = off,
+                char = marker.char,
+                root = marker.off;
 
             if (off >= l$$1) {
                 length = 0;
                 base = l$$1;
-                char -= base - off;
+                //char -= base - off;
+                marker.char = char + (base - marker.off);
                 marker.type = type;
                 marker.off = base;
-                marker.tl = length;
-                marker.char = char;
+                marker.tl = 0;
                 marker.line = line;
                 return marker;
             }
@@ -576,12 +582,11 @@ ${is_iws}`;
                     NORMAL_PARSE = false;
                     base = off;
                     length = off2 - off;
-                    char += length;
+                    //char += length;
                 }
             }
 
             if (NORMAL_PARSE) {
-
 
                 for (;;) {
 
@@ -637,12 +642,14 @@ ${is_iws}`;
                                 break;
                             case 5: //CARIAGE RETURN
                                 length = 2;
-                                //Intentional
                             case 6: //LINEFEED
+                                //Intentional
                                 type = new_line;
-                                char = 0;
                                 line++;
+                                base = off;
+                                root = off;
                                 off += length;
+                                char = 0;
                                 break;
                             case 7: //SYMBOL
                                 type = symbol;
@@ -661,22 +668,17 @@ ${is_iws}`;
                                 length = 4; //Stores two UTF16 values and a data link sentinel
                                 break;
                         }
+                    }else{
+                        break;
                     }
 
                     if (IWS && (type & white_space_new_line)) {
                         if (off < l$$1) {
-                            char += length;
                             type = symbol;
+                            //off += length;
                             continue;
-                        } else {
-                            //Trim white space from end of string
-                            base = l$$1 - length;
-                            marker.sl -= length;
-                            length = 0;
-                            char -= base - off;
                         }
                     }
-
                     break;
                 }
             }
@@ -684,9 +686,8 @@ ${is_iws}`;
             marker.type = type;
             marker.off = base;
             marker.tl = (this.masked_values & CHARACTERS_ONLY_MASK) ? Math.min(1, length) : length;
-            marker.char = char;
+            marker.char = char + base - root;
             marker.line = line;
-
             return marker;
         }
 
