@@ -174,14 +174,14 @@ class Lexer {
         while (!pk.END && pk.ty !== Types.nl) { pk.next() }
         const end = (pk.END) ? this.str.length : pk.off ;
 
-    console.log(this.line, this.char, this.off, line_fill, end,this.off-this.char+((this.line > 0) ? 1 :0))
+    //console.log(`"${this.str.slice(this.off-this.char+((this.line > 0) ? 2 :2), end).split("").map((e,i,s)=>e.charCodeAt(0))}"`)
     let v = "", length = 0;
-    v = this.str.slice(this.off-this.char+((this.line > 0) ? 1 :0), end);
+    v = this.str.slice(this.off-this.char+((this.line > 0) ? 2 :1), end);
     length = this.char;
     return `${message} at ${this.line}:${this.char}
 ${t}
 ${line_number+v}
-${line.repeat(length+line_fill-((this.line > 0) ? 1 :0))+arrow}
+${line.repeat(length+line_fill-((this.line > 0) ? 2 :1))+arrow}
 ${t}
 ${is_iws}`;
     }
