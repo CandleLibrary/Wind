@@ -289,7 +289,8 @@ var whind = (function (exports) {
     0		/* DELETE */
     ];
 
-    const number = 1,
+    const 
+        number = 1,
         identifier = 2,
         string = 4,
         white_space = 8,
@@ -460,16 +461,14 @@ var whind = (function (exports) {
             while (!pk.END && pk.ty !== Types.nl) { pk.next(); }
             const end = (pk.END) ? this.str.length : pk.off ;
 
-        console.log(end);
-
-        console.log(this.line, this.char, this.off, line_fill, end,this.off-this.char+((this.line > 0) ? 1 :0));
+        //console.log(`"${this.str.slice(this.off-this.char+((this.line > 0) ? 2 :2), end).split("").map((e,i,s)=>e.charCodeAt(0))}"`)
         let v$$1 = "", length = 0;
-        v$$1 = this.str.slice(this.off-this.char+((this.line > 0) ? 1 :0), end);
+        v$$1 = this.str.slice(this.off-this.char+((this.line > 0) ? 2 :1), end);
         length = this.char;
         return `${message} at ${this.line}:${this.char}
 ${t$$1}
 ${line_number+v$$1}
-${line.repeat(length+line_fill-((this.line > 0) ? 1 :0))+arrow}
+${line.repeat(length+line_fill-((this.line > 0) ? 2 :1))+arrow}
 ${t$$1}
 ${is_iws}`;
         }
