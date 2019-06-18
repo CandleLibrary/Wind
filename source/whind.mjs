@@ -172,11 +172,10 @@ class Lexer {
 
             nls = (this.line > 0) ? 2 : 1,
 
-            number_of_tabs =
-            this.str
-            .slice(this.off - this.char + nls, this.off + nls)
-            .split("")
-            .reduce((r, v) => (r + ((v.charCodeAt(0) == HORIZONTAL_TAB) | 0)), 0),
+            number_of_tabs = this.str
+                .slice(this.off - this.char + nls, this.off + nls)
+                .split("")
+                .reduce((r, v) => (r + ((v.charCodeAt(0) == HORIZONTAL_TAB) | 0)), 0),
 
             arrow = String.fromCharCode(0x2b89),
 
@@ -253,7 +252,7 @@ class Lexer {
      * @public
      * @param {Lexer} [marker=this] - If another Lexer is passed into this method, it will advance the token state of that Lexer.
      */
-    next(marker = this) {
+    next(marker = this, USE_CUSTOM_SYMBOLS = !!this.symbol_map) {
 
         if (marker.sl < 1) {
             marker.off = 0;
@@ -289,7 +288,6 @@ class Lexer {
             return marker;
         }
 
-        const USE_CUSTOM_SYMBOLS = !!this.symbol_map;
         let NORMAL_PARSE = true;
 
         if (USE_CUSTOM_SYMBOLS) {
