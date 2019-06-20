@@ -159,7 +159,7 @@ class Lexer {
     }
 
     /**
-    Creates and error message with a diagrame illustrating the location of the error. 
+    Creates an error message with a diagram illustrating the location of the error. 
     */
     errorMessage(message = "") {
         const pk = this.copy();
@@ -170,7 +170,7 @@ class Lexer {
 
         const end = (pk.END) ? this.str.length : pk.off,
 
-            nls = (this.line > 0) ? 2 : 1,
+            nls = (this.line > 0) ? 1 : 0,
 
             number_of_tabs = this.str
                 .slice(this.off - this.char + nls, this.off + nls)
@@ -371,8 +371,8 @@ class Lexer {
                             break;
                         case 5: //CARIAGE RETURN
                             length = 2;
+                            //intentional
                         case 6: //LINEFEED
-                            //Intentional
                             type = new_line;
                             line++;
                             base = off;

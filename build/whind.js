@@ -289,7 +289,7 @@ var whind = (function (exports) {
     0		/* DELETE */
     ];
 
-    const 
+    const
         number = 1,
         identifier = 2,
         string = 4,
@@ -342,7 +342,7 @@ var whind = (function (exports) {
             31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
         ];
 
-    const  getNumbrOfTrailingZeroBitsFromPowerOf2 = (value) => debruijnLUT[(value * 0x077CB531) >>> 27];
+    const getNumbrOfTrailingZeroBitsFromPowerOf2 = (value) => debruijnLUT[(value * 0x077CB531) >>> 27];
 
     class Lexer {
 
@@ -449,28 +449,46 @@ var whind = (function (exports) {
         Creates and error message with a diagrame illustrating the location of the error. 
         */
         errorMessage(message = "") {
-            const arrow = String.fromCharCode(0x2b89),
-                line = String.fromCharCode(0x2500),
-                thick_line = String.fromCharCode(0x2501),
-                line_number = "    " + this.line + ": ",
-                line_fill = line_number.length,
-                t$$1 = thick_line.repeat(line_fill + 48),
-                is_iws = (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "";
             const pk = this.copy();
-            pk.IWS = false;
-            while (!pk.END && pk.ty !== Types.nl) { pk.next(); }
-            const end = (pk.END) ? this.str.length : pk.off ;
 
-        //console.log(`"${this.str.slice(this.off-this.char+((this.line > 0) ? 2 :2), end).split("").map((e,i,s)=>e.charCodeAt(0))}"`)
-        let v$$1 = "", length = 0;
-        v$$1 = this.str.slice(this.off-this.char+((this.line > 0) ? 2 :1), end);
-        length = this.char;
-        return `${message} at ${this.line}:${this.char}
-${t$$1}
-${line_number+v$$1}
-${line.repeat(length+line_fill-((this.line > 0) ? 2 :1))+arrow}
-${t$$1}
-${is_iws}`;
+            pk.IWS = false;
+
+            while (!pk.END && pk.ty !== Types.nl) { pk.next(); }
+
+            const end = (pk.END) ? this.str.length : pk.off,
+
+                nls = (this.line > 0) ? 2 : 1,
+
+                number_of_tabs =
+                this.str
+                .slice(this.off - this.char + nls, this.off + nls)
+                .split("")
+                .reduce((r$$1, v$$1) => (r$$1 + ((v$$1.charCodeAt(0) == HORIZONTAL_TAB) | 0)), 0),
+
+                arrow = String.fromCharCode(0x2b89),
+
+                line = String.fromCharCode(0x2500),
+
+                thick_line = String.fromCharCode(0x2501),
+
+                line_number = `    ${this.line}: `,
+
+                line_fill = line_number.length + number_of_tabs,
+
+                line_text = this.str.slice(this.off - this.char + (nls), end).replace(/\t/g, "  "),
+
+                error_border = thick_line.repeat(line_text.length + line_number.length + 2),
+
+                is_iws = (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "",
+
+                msg =[ `${message} at ${this.line}:${this.char}` ,
+                `${error_border}` ,
+                `${line_number+line_text}` ,
+                `${line.repeat(this.char+line_fill-(nls))+arrow}` ,
+                `${error_border}` ,
+                `${is_iws}`].join("\n");
+
+            return msg
         }
 
         /**
@@ -667,7 +685,7 @@ ${is_iws}`;
                                 length = 4; //Stores two UTF16 values and a data link sentinel
                                 break;
                         }
-                    }else{
+                    } else {
                         break;
                     }
 
