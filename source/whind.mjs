@@ -171,9 +171,8 @@ class Lexer {
         const end = (pk.END) ? this.str.length : pk.off,
 
             nls = (this.line > 0) ? 1 : 0,
-
             number_of_tabs = this.str
-                .slice(this.off - this.char + nls, this.off + nls)
+                .slice(this.off - this.char + nls + nls, this.off + nls)
                 .split("")
                 .reduce((r, v) => (r + ((v.charCodeAt(0) == HORIZONTAL_TAB) | 0)), 0),
 
@@ -183,24 +182,24 @@ class Lexer {
 
             thick_line = String.fromCharCode(0x2501),
 
-            line_number = `    ${this.line}: `,
+            line_number = `    ${this.line+1}: `,
 
             line_fill = line_number.length + number_of_tabs,
 
-            line_text = this.str.slice(this.off - this.char + (nls), end).replace(/\t/g, "  "),
+            line_text = this.str.slice(this.off - this.char + nls + (nls), end).replace(/\t/g, "  "),
 
             error_border = thick_line.repeat(line_text.length + line_number.length + 2),
 
             is_iws = (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "",
 
-            msg =[ `${message} at ${this.line}:${this.char}` ,
+            msg =[ `${message} at ${this.line+1}:${this.char - nls}` ,
             `${error_border}` ,
             `${line_number+line_text}` ,
-            `${line.repeat(this.char+line_fill-(nls))+arrow}` ,
+            `${line.repeat(this.char-nls+line_fill-(nls))+arrow}` ,
             `${error_border}` ,
             `${is_iws}`].join("\n");
 
-        return msg
+        return msg;
     }
 
     /**
