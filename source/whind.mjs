@@ -2,6 +2,11 @@ import { SPACE, HORIZONTAL_TAB } from "./ascii_code_points.mjs";
 
 import { jump_table, number_and_identifier_table } from "./tables/basic.mjs";
 
+
+const extended_number_and_identifier_table = number_and_identifier_table.slice();
+extended_number_and_identifier_table[45] = 2;
+extended_number_and_identifier_table[95] = 2;
+
 const
     number = 1,
     identifier = 2,
@@ -107,12 +112,23 @@ class Lexer {
          */
         this.IWS = !INCLUDE_WHITE_SPACE_TOKENS;
 
+        this.USE_EXTENDED_ID = false;
+
         /**
          * Flag to force the lexer to parse string contents
          */
         this.PARSE_STRING = false;
 
+        this.id_lu = number_and_identifier_table;
+
         if (!PEEKING) this.next();
+    }
+
+    useExtendedId(){
+        this.id_lu = extended_number_and_identifier_table;
+        this.tl = 0;
+        this.next();
+        return this;
     }
 
     /**
@@ -265,6 +281,7 @@ class Lexer {
         //Token builder
         const l = marker.sl,
             str = marker.str,
+            number_and_identifier_table = this.id_lu,
             IWS = marker.IWS;
 
         let length = marker.tl,
@@ -421,6 +438,7 @@ class Lexer {
         marker.tl = (this.masked_values & CHARACTERS_ONLY_MASK) ? Math.min(1, length) : length;
         marker.char = char + base - root;
         marker.line = line;
+
         return marker;
     }
 

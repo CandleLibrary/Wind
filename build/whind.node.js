@@ -196,16 +196,16 @@ const number_and_identifier_table = [
 0,		/* EXCLAMATION */
 0,		/* DOUBLE_QUOTE */
 0,		/* HASH */
-8,		/* DOLLAR */
+0,		/* DOLLAR */
 0,		/* PERCENT */
 0,		/* AMPERSAND */
-2,		/* QUOTE */
+0,		/* QUOTE */
 0,		/* OPEN_PARENTH */
 0,		 /* CLOSE_PARENTH */
 0,		/* ASTERISK */
 0,		/* PLUS */
 0,		/* COMMA */
-2,		/* HYPHEN */
+0,		/* HYPHEN */
 4,		/* PERIOD */
 0,		/* FORWARD_SLASH */
 8,		/* ZERO */
@@ -255,7 +255,7 @@ const number_and_identifier_table = [
 0,		/* TILDE */
 0,		/* CLOSE_SQUARE */
 0,		/* CARET */
-2,		/* UNDER_SCORE */
+0,		/* UNDER_SCORE */
 0,		/* GRAVE */
 2,		/* a */
 8,		/* b */
@@ -447,7 +447,7 @@ class Lexer {
     }
 
     /**
-    Creates and error message with a diagrame illustrating the location of the error. 
+    Creates an error message with a diagram illustrating the location of the error. 
     */
     errorMessage(message = "") {
         const pk = this.copy();
@@ -458,13 +458,11 @@ class Lexer {
 
         const end = (pk.END) ? this.str.length : pk.off,
 
-            nls = (this.line > 0) ? 2 : 1,
-
-            number_of_tabs =
-            this.str
-            .slice(this.off - this.char + nls, this.off + nls)
-            .split("")
-            .reduce((r$$1, v$$1) => (r$$1 + ((v$$1.charCodeAt(0) == HORIZONTAL_TAB) | 0)), 0),
+            nls = (this.line > 0) ? 1 : 0,
+            number_of_tabs = this.str
+                .slice(this.off - this.char + nls + nls, this.off + nls)
+                .split("")
+                .reduce((r$$1, v$$1) => (r$$1 + ((v$$1.charCodeAt(0) == HORIZONTAL_TAB) | 0)), 0),
 
             arrow = String.fromCharCode(0x2b89),
 
@@ -472,24 +470,24 @@ class Lexer {
 
             thick_line = String.fromCharCode(0x2501),
 
-            line_number = `    ${this.line}: `,
+            line_number = `    ${this.line+1}: `,
 
             line_fill = line_number.length + number_of_tabs,
 
-            line_text = this.str.slice(this.off - this.char + (nls), end).replace(/\t/g, "  "),
+            line_text = this.str.slice(this.off - this.char + nls + (nls), end).replace(/\t/g, "  "),
 
             error_border = thick_line.repeat(line_text.length + line_number.length + 2),
 
             is_iws = (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "",
 
-            msg =[ `${message} at ${this.line}:${this.char}` ,
+            msg =[ `${message} at ${this.line+1}:${this.char - nls}` ,
             `${error_border}` ,
             `${line_number+line_text}` ,
-            `${line.repeat(this.char+line_fill-(nls))+arrow}` ,
+            `${line.repeat(this.char-nls+line_fill-(nls))+arrow}` ,
             `${error_border}` ,
             `${is_iws}`].join("\n");
 
-        return msg
+        return msg;
     }
 
     /**
@@ -541,7 +539,7 @@ class Lexer {
      * @public
      * @param {Lexer} [marker=this] - If another Lexer is passed into this method, it will advance the token state of that Lexer.
      */
-    next(marker = this) {
+    next(marker = this, USE_CUSTOM_SYMBOLS = !!this.symbol_map) {
 
         if (marker.sl < 1) {
             marker.off = 0;
@@ -577,7 +575,6 @@ class Lexer {
             return marker;
         }
 
-        const USE_CUSTOM_SYMBOLS = !!this.symbol_map;
         let NORMAL_PARSE = true;
 
         if (USE_CUSTOM_SYMBOLS) {
@@ -660,8 +657,8 @@ class Lexer {
                             break;
                         case 5: //CARIAGE RETURN
                             length = 2;
+                            //intentional
                         case 6: //LINEFEED
-                            //Intentional
                             type = new_line;
                             line++;
                             base = off;
