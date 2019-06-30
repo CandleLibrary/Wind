@@ -290,6 +290,10 @@ const number_and_identifier_table = [
 0		/* DELETE */
 ];
 
+const extended_number_and_identifier_table = number_and_identifier_table.slice();
+extended_number_and_identifier_table[45] = 2;
+extended_number_and_identifier_table[95] = 2;
+
 const
     number = 1,
     identifier = 2,
@@ -395,12 +399,23 @@ class Lexer {
          */
         this.IWS = !INCLUDE_WHITE_SPACE_TOKENS;
 
+        this.USE_EXTENDED_ID = false;
+
         /**
          * Flag to force the lexer to parse string contents
          */
         this.PARSE_STRING = false;
 
+        this.id_lu = number_and_identifier_table;
+
         if (!PEEKING) this.next();
+    }
+
+    useExtendedId(){
+        this.id_lu = extended_number_and_identifier_table;
+        this.tl = 0;
+        this.next();
+        return this;
     }
 
     /**
@@ -553,6 +568,7 @@ class Lexer {
         //Token builder
         const l$$1 = marker.sl,
             str = marker.str,
+            number_and_identifier_table$$1 = this.id_lu,
             IWS = marker.IWS;
 
         let length = marker.tl,
@@ -615,9 +631,9 @@ class Lexer {
 
                     switch (jump_table[code]) {
                         case 0: //NUMBER
-                            while (++off < l$$1 && (12 & number_and_identifier_table[str.charCodeAt(off)]));
+                            while (++off < l$$1 && (12 & number_and_identifier_table$$1[str.charCodeAt(off)]));
 
-                            if ((str[off] == "e" || str[off] == "E") && (12 & number_and_identifier_table[str.charCodeAt(off + 1)])) {
+                            if ((str[off] == "e" || str[off] == "E") && (12 & number_and_identifier_table$$1[str.charCodeAt(off + 1)])) {
                                 off++;
                                 if (str[off] == "-") off++;
                                 marker.off = off;
@@ -632,7 +648,7 @@ class Lexer {
 
                             break;
                         case 1: //IDENTIFIER
-                            while (++off < l$$1 && ((10 & number_and_identifier_table[str.charCodeAt(off)])));
+                            while (++off < l$$1 && ((10 & number_and_identifier_table$$1[str.charCodeAt(off)])));
                             type = identifier;
                             length = off - base;
                             break;
@@ -703,6 +719,7 @@ class Lexer {
         marker.tl = (this.masked_values & CHARACTERS_ONLY_MASK) ? Math.min(1, length) : length;
         marker.char = char + base - root;
         marker.line = line;
+
         return marker;
     }
 
