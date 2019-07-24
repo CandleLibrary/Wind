@@ -65,13 +65,29 @@ typings/
 
 # Serverless directories
 .serverless
+© 2018 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Help
+Contact GitHub
+API
+Training
+Shop
+Blog
+About
+Press h to open a hovercard with more details.
 
 #Build directory
-
-!build/config/
+!build/build_config/
+!build/wick.css
 
 #Api directory
 documents/api/*
 
-.nyc*
+#sublime  workspace
 *.sublime-workspace
+
+#HCG backup compiler files.
+*.hcgb*
