@@ -152,6 +152,7 @@ class Lexer {
         destination.line = this.line;
         destination.sl = this.sl;
         destination.masked_values = this.masked_values;
+        destination.id_lu = this.id_lu;
         return destination;
     }
 
