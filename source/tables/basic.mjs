@@ -199,7 +199,7 @@ export const number_and_identifier_table = [
 0,		/* PLUS */
 0,		/* COMMA */
 0,		/* HYPHEN */
-4,		/* PERIOD */
+0,		/* PERIOD */
 0,		/* FORWARD_SLASH */
 8,		/* ZERO */
 8,		/* ONE */

@@ -332,9 +332,7 @@ class Lexer {
             }
         }
 
-        if (NORMAL_PARSE) {
-
-            for (;;) {
+        while (NORMAL_PARSE) {
 
                 base = off;
 
@@ -431,7 +429,6 @@ class Lexer {
                     }
                 }
                 break;
-            }
         }
 
         marker.type = type;
