@@ -3,8 +3,8 @@ import URL from "@candlefw/url";
 async function start() {
 	await URL.polyfill();
 
-	//const url = new URL("http://unicode.org/Public/12.0.0/ucd/UnicodeData.txt");
-	const url = new URL("./UnicodeData.txt");
+	const url = new URL("http://unicode.org/Public/12.0.0/ucd/UnicodeData.txt");
+	//const url = new URL("./UnicodeData.txt");
 
 	const data = await url.fetchText();
 	/* https://unicode.org/Public/8.0.0/ucd/UCD.html */

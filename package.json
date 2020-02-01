@@ -1,6 +1,6 @@
 {
   "name": "@candlefw/whind",
-  "version": "0.3.6",
+  "version": "0.3.6-uni-id.0",
   "description": "A Simple Tokenizer / Lexer",
   "main": "source/whind.mjs",
   "directories": {
@@ -26,12 +26,12 @@
   "author": "Anthony Weathersby",
   "license": "MIT",
   "devDependencies": {
-    "@candlefw/url": "^0.0.10",
+    "@candlefw/url": "^0.0.11",
     "chai": "^4.2.0",
     "esm": "^3.0.84",
-    "mocha": "^5.2.0",
-    "nyc": "^14.1.1",
-    "rollup": "^0.67.3"
+    "mocha": "^7.0.1",
+    "nyc": "^15.0.0",
+    "rollup": "^1.31.0"
   },
   "eslintConfig": {
     "parserOptions": {
