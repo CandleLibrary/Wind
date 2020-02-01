@@ -1,12 +1,12 @@
 const HORIZONTAL_TAB = 9;
 const SPACE = 32;
 
-import { jump_table, number_and_identifier_table } from "./tables/basic.mjs";
+import jump_table from "./tables/basic.mjs";
 
 
-const extended_number_and_identifier_table = number_and_identifier_table.slice();
-extended_number_and_identifier_table[45] = 2;
-extended_number_and_identifier_table[95] = 2;
+const extended_jump_table = jump_table.slice();
+extended_jump_table[45] |= 2 << 8;
+extended_jump_table[95] |= 2 << 8;
 
 const
     number = 1,
@@ -120,13 +120,13 @@ class Lexer {
          */
         this.PARSE_STRING = false;
 
-        this.id_lu = number_and_identifier_table;
+        this.id_lu = jump_table;
 
         if (!PEEKING) this.next();
     }
 
-    useExtendedId(){
-        this.id_lu = extended_number_and_identifier_table;
+    useExtendedId() {
+        this.id_lu = extended_jump_table;
         this.tl = 0;
         this.next();
         return this;
@@ -190,9 +190,9 @@ class Lexer {
 
             nls = (this.line > 0) ? 1 : 0,
             number_of_tabs = this.str
-                .slice(this.off - this.char + nls + nls, this.off + nls)
-                .split("")
-                .reduce((r, v) => (r + ((v.charCodeAt(0) == HORIZONTAL_TAB) | 0)), 0),
+            .slice(this.off - this.char + nls + nls, this.off + nls)
+            .split("")
+            .reduce((r, v) => (r + ((v.charCodeAt(0) == HORIZONTAL_TAB) | 0)), 0),
 
             arrow = String.fromCharCode(0x2b89),
 
@@ -210,11 +210,11 @@ class Lexer {
 
             is_iws = (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "",
 
-            msg =[ `${message} at ${this.line+1}:${this.char - nls}` ,
-            `${error_border}` ,
-            `${line_number+line_text}` ,
-            `${line.repeat(this.char-nls+line_fill-(nls))+arrow}` ,
-            `${error_border}` ,
+            msg = [`${message} at ${this.line+1}:${this.char - nls}`,
+            `${error_border}`,
+            `${line_number+line_text}`,
+            `${line.repeat(this.char-nls+line_fill-(nls))+arrow}`,
+            `${error_border}`,
             `${is_iws}`].join("\n");
 
         return msg;
@@ -283,7 +283,7 @@ class Lexer {
         //Token builder
         const l = marker.sl,
             str = marker.str,
-            number_and_identifier_table = this.id_lu,
+            jump_table = this.id_lu,
             IWS = marker.IWS;
 
         let length = marker.tl,
@@ -335,101 +335,96 @@ class Lexer {
 
         while (NORMAL_PARSE) {
 
-                base = off;
+            base = off;
 
-                length = 1;
+            length = 1;
 
-                const code = str.charCodeAt(off);
+            const code = str.codePointAt(off);
 
-                if (code < 128) {
-
-                    switch (jump_table[code]) {
-                        case 0: //NUMBER
-                            while (++off < l && (12 & number_and_identifier_table[str.charCodeAt(off)]));
-
-                            if ((str[off] == "e" || str[off] == "E") && (12 & number_and_identifier_table[str.charCodeAt(off + 1)])) {
-                                off++;
-                                if (str[off] == "-") off++;
-                                marker.off = off;
-                                marker.tl = 0;
-                                marker.next();
-                                off = marker.off + marker.tl;
-                                //Add e to the number string
-                            }
-
-                            type = number;
-                            length = off - base;
-
-                            break;
-                        case 1: //IDENTIFIER
-                            while (++off < l && ((10 & number_and_identifier_table[str.charCodeAt(off)])));
-                            type = identifier;
-                            length = off - base;
-                            break;
-                        case 2: //QUOTED STRING
-                            if (this.PARSE_STRING) {
-                                type = symbol;
-                            } else {
-                                while (++off < l && str.charCodeAt(off) !== code);
-                                type = string;
-                                length = off - base + 1;
-                            }
-                            break;
-                        case 3: //SPACE SET
-                            while (++off < l && str.charCodeAt(off) === SPACE);
-                            type = white_space;
-                            length = off - base;
-                            break;
-                        case 4: //TAB SET
-                            while (++off < l && str[off] === HORIZONTAL_TAB);
-                            type = white_space;
-                            length = off - base;
-                            break;
-                        case 5: //CARIAGE RETURN
-                            length = 2;
-                            //intentional
-                        case 6: //LINEFEED
-                            type = new_line;
-                            line++;
-                            base = off;
-                            root = off;
-                            off += length;
-                            char = 0;
-                            break;
-                        case 7: //SYMBOL
-                            type = symbol;
-                            break;
-                        case 8: //OPERATOR
-                            type = operator;
-                            break;
-                        case 9: //OPEN BRACKET
-                            type = open_bracket;
-                            break;
-                        case 10: //CLOSE BRACKET
-                            type = close_bracket;
-                            break;
-                        case 11: //Data Link Escape
-                            type = data_link;
-                            length = 4; //Stores two UTF16 values and a data link sentinel
-                            break;
-                    }
-                } else {
+            switch (jump_table[code] & 255) {
+                case 0: //SYMBOL
+                    type = symbol;
                     break;
-                }
-
-                if (IWS && (type & white_space_new_line)) {
-                    if (off < l) {
+                case 1: //IDENTIFIER
+                    while (++off < l && ((10 & (jump_table[str.codePointAt(off)] >> 8))));
+                    type = identifier;
+                    length = off - base;
+                    break;
+                case 2: //QUOTED STRING
+                    if (this.PARSE_STRING) {
                         type = symbol;
-                        //off += length;
-                        continue;
                     } else {
-                        //Trim white space from end of string
-                        base = l - off;
-                        marker.sl -= off;
-                        length = 0;
+                        while (++off < l && str.codePointAt(off) !== code);
+                        type = string;
+                        length = off - base + 1;
                     }
+                    break;
+                case 3: //SPACE SET
+                    while (++off < l && str.codePointAt(off) === SPACE);
+                    type = white_space;
+                    length = off - base;
+                    break;
+                case 4: //TAB SET
+                    while (++off < l && str[off] === HORIZONTAL_TAB);
+                    type = white_space;
+                    length = off - base;
+                    break;
+                case 5: //CARIAGE RETURN
+                    length = 2;
+                    //intentional
+                case 6: //LINEFEED
+                    type = new_line;
+                    line++;
+                    base = off;
+                    root = off;
+                    off += length;
+                    char = 0;
+                    break;
+                case 7: //NUMBER
+                    while (++off < l && (12 & (jump_table[str.codePointAt(off)] >> 8)));
+
+                    if ((str[off] == "e" || str[off] == "E") && (12 & (jump_table[str.codePointAt(off + 1)] >> 8))) {
+                        off++;
+                        if (str[off] == "-") off++;
+                        marker.off = off;
+                        marker.tl = 0;
+                        marker.next();
+                        off = marker.off + marker.tl;
+                        //Add e to the number string
+                    }
+
+                    type = number;
+                    length = off - base;
+
+                    break;
+                case 8: //OPERATOR
+                    type = operator;
+                    break;
+                case 9: //OPEN BRACKET
+                    type = open_bracket;
+                    break;
+                case 10: //CLOSE BRACKET
+                    type = close_bracket;
+                    break;
+                case 11: //Data Link Escape
+                    type = data_link;
+                    length = 4; //Stores two UTF16 values and a data link sentinel
+                    break;
+            }
+
+            if (IWS && (type & white_space_new_line)) {
+                if (off < l) {
+                    type = symbol;
+                    //off += length;
+                    continue;
+                } else {
+                    //Trim white space from end of string
+                    base = l - off;
+                    marker.sl -= off;
+                    length = 0;
                 }
-                break;
+            }
+            break;
         }
 
         marker.type = type;

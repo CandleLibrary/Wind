@@ -90,6 +90,18 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
+"@candlefw/url@^0.0.10":
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/@candlefw/url/-/url-0.0.10.tgz#6898870d57dd27681ad57215604dcd94267c35c2"
+  integrity sha512-cAKFPzdFvkWmJS9pP0nEPMsrUc5b/uOadjXVl59SHDQI/QNTxZljtY7Hg6GYZDtXiCaH63LBKbyI2mSPPmckng==
+  dependencies:
+    "@candlefw/whind" latest
+
+"@candlefw/whind@latest":
+  version "0.3.6-simple-num.1"
+  resolved "https://registry.yarnpkg.com/@candlefw/whind/-/whind-0.3.6-simple-num.1.tgz#f4b0d3604eb0c33195df7e521564fe1036d9a1e8"
+  integrity sha512-YiSECgq6lumafYDn3bqJPscVqxWa0HODut1ZOkAOqK3z2LUMrZcY2CrMHKdbHbQ0MpjlqPv7kRh0buubyIZ3eA==
+
 "@types/estree@0.0.39":
   version "0.0.39"
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
