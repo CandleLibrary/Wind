@@ -2,7 +2,7 @@ const chai = require("chai");
 chai.should();
 
 const test_string = `
-        Here in lies all that matters: a number, 1.01, a symbol, #, a string,
+        Here in lies all that matters: a number, 101, a symbol, #, a string,
         "some day", the brackets, [{<()>}], and the rest, +=!@.
 
     `;
@@ -23,7 +23,7 @@ describe("Test", function() {
         let lex_copy = lex.copy();
         lex_copy.off += 1;
         lex.n.n.n.n.ty.should.equal(types.number);
-        lex.n.slice(lex_copy).should.equal(" a number, 1.01");
+        lex.n.slice(lex_copy).should.equal(" a number, 101");
         lex.n.n.n.n.ty.should.equal(types.symbol);
         lex.n.n.n.n.n.ty.should.equal(types.string);
         lex.n.n.n.n.n.ty.should.equal(types.open_bracket);

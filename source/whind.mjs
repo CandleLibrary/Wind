@@ -1,4 +1,5 @@
-import { SPACE, HORIZONTAL_TAB } from "./ascii_code_points.mjs";
+const HORIZONTAL_TAB = 9;
+const SPACE = 32;
 
 import { jump_table, number_and_identifier_table } from "./tables/basic.mjs";
 
@@ -423,9 +424,9 @@ class Lexer {
                         continue;
                     } else {
                         //Trim white space from end of string
-                        //base = l - off;
-                        //marker.sl -= off;
-                        //length = 0;
+                        base = l - off;
+                        marker.sl -= off;
+                        length = 0;
                     }
                 }
                 break;
