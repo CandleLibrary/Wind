@@ -39,7 +39,7 @@ aii(j, 2, 34, 39, 96);
 //3. SPACE SET
 aii(j, 3, 32);
 
-//4. SPACE SET
+//4. TAB SET
 aii(j, 4, 9);
 
 //5. CARIAGE RETURN 

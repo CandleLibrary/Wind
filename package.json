@@ -3,6 +3,7 @@
   "version": "0.3.6-uni-id.0",
   "description": "A Simple Tokenizer / Lexer",
   "main": "source/whind.mjs",
+  "type" : "module",
   "directories": {
     "test": "test"
   },
