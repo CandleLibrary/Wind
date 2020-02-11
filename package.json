@@ -1,9 +1,9 @@
 {
   "name": "@candlefw/whind",
-  "version": "0.3.6-uni-id.0",
+  "version": "0.3.7",
   "description": "A Simple Tokenizer / Lexer",
   "main": "source/whind.mjs",
-  "type" : "module",
+  "type": "module",
   "directories": {
     "test": "test"
   },
