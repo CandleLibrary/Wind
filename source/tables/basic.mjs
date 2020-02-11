@@ -37,7 +37,7 @@ aii(j, 1, ...uni_id_start);
 aii(j, 2, 34, 39, 96);
 
 //3. SPACE SET
-aii(j, 3, 32);
+aii(j, 3, 32, 0xA0, 0x2002, 0x2003, 0x2004, 0x3000);
 
 //4. TAB SET
 aii(j, 4, 9);
