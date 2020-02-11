@@ -177,6 +177,23 @@ class Lexer {
     }
 
     /**
+        Looks for the string within the text and returns a new lexer at the location of the first occurance of the token or 
+    */
+    find(string){
+        const cp = this.pk, match = this.copy().reset();
+        match.str = string;
+        match.tl = 0;
+        cp.tl = 0;
+        while(!cp.END){
+            const mpk = match.pk, cpk = cp.pk;
+            while(!mpk.END && !cpk.END && cpk.tx == mpk.tx){cpk.next(); mpk.next()}
+            if(mpk.END) return cp.next();
+            cp.sync(cpk);
+        }
+        return cp;
+    }
+
+    /**
     Creates an error message with a diagram illustrating the location of the error. 
     */
     errorMessage(message = "") {
