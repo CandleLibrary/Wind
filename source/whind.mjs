@@ -63,6 +63,10 @@ const
 
 const getNumbrOfTrailingZeroBitsFromPowerOf2 = (value) => debruijnLUT[(value * 0x077CB531) >>> 27];
 
+const arrow = String.fromCharCode(0x2b89);
+const line = String.fromCharCode(0x2500);
+const thick_line = String.fromCharCode(0x2501);
+
 class Lexer {
 
     constructor(string = "", INCLUDE_WHITE_SPACE_TOKENS = false, PEEKING = false) {
@@ -196,45 +200,89 @@ class Lexer {
     /**
     Creates an error message with a diagram illustrating the location of the error. 
     */
-    errorMessage(message = "") {
-        const pk = this.copy();
+    errorMessage(message = "", window_size = 40, tab_size = 4) {
 
-        pk.IWS = false;
+        //Get the text from the proceeding and the following lines; 
+        //If current line is at index 0 then there will be no proceeeding line;
+        //Likewise for the following line if current line is the last one in the string.
 
-        while (!pk.END && pk.ty !== Types.nl) { pk.next() }
+        const line_start = this.off - this.char,
+            char = this.char,
+            l = this.line,
+            str = this.str,
+            len = str.length,
+            sp = " ";
 
-        const end = (pk.END) ? this.str.length : pk.off,
+        let prev_start = 0,
+            next_start = 0,
+            next_end = 0,
+            i = 0;
 
-            nls = (this.line > 0) ? 1 : 0,
-            number_of_tabs = this.str
-            .slice(this.off - this.char + nls + nls, this.off + nls)
-            .split("")
-            .reduce((r, v) => (r + ((v.charCodeAt(0) == HORIZONTAL_TAB) | 0)), 0),
 
-            arrow = String.fromCharCode(0x2b89),
+        //get the start of the proceeding line
+        for (i = char; --i > 0 && jump_table[str.codePointAt(i)] !== 6;);
+        prev_start = i;
 
-            line = String.fromCharCode(0x2500),
+        //get the end of the current line...
+        for (i = this.off + this.tl; i++ < len && jump_table[str.codePointAt(i)] !== 6;);
+        next_start = i;
 
-            thick_line = String.fromCharCode(0x2501),
+        //and the next line
+        for (; i++ < len && jump_table[str.codePointAt(i)] !== 6;);
+        next_end = i;
 
-            line_number = `    ${this.line+1}: `,
+        let pointer_pos = char - (line_start > 0 ? 1 : 0);
 
-            line_fill = line_number.length + number_of_tabs,
+        for (i = line_start; ++i < this.off;)
+            if (str.codePointAt(i) == HORIZONTAL_TAB)
+                pointer_pos += tab_size - 1;
 
-            line_text = this.str.slice(this.off - this.char + nls + (nls), end).replace(/\t/g, "  "),
+        //find the location of the offending symbol
+        const
+            prev_line = str.slice(prev_start + (prev_start > 0 ? 1 : 0), line_start).replace(/\t/g, sp.repeat(tab_size)),
+            curr_line = str.slice(line_start + (line_start > 0 ? 1 : 0), next_start).replace(/\t/g, sp.repeat(tab_size)),
+            next_line = str.slice(next_start + 1, next_end).replace(/\t/g, " "),
 
-            error_border = thick_line.repeat(line_text.length + line_number.length + 2),
+            //get the max line length;
+        
+            max_length = Math.max(prev_line.length, curr_line.length, next_line.length),
+            min_length = Math.min(prev_line.length, curr_line.length, next_line.length),
+            length_diff = max_length - min_length,
 
-            is_iws = (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "",
+            //Get the window size;
+            w_size = window_size,
+            w_start = Math.max(0, Math.min(pointer_pos - w_size / 2, max_length)),
+            w_end = Math.max(0, Math.min(pointer_pos + w_size / 2, max_length)),
+            w_pointer_pos = Math.max(0, Math.min(pointer_pos, max_length)) - w_start,
 
-            msg = [`${message} at ${this.line+1}:${this.char - nls}`,
-            `${error_border}`,
-            `${line_number+line_text}`,
-            `${line.repeat(this.char-nls+line_fill-(nls))+arrow}`,
-            `${error_border}`,
-            `${is_iws}`].join("\n");
 
-        return msg;
+            //append the difference of line lengths to the end of the lines as space characers;
+
+            prev_line_o = (prev_line + sp.repeat(length_diff)).slice(w_start, w_end),
+            curr_line_o = (curr_line + sp.repeat(length_diff)).slice(w_start, w_end),
+            next_line_o = (next_line + sp.repeat(length_diff)).slice(w_start, w_end),
+
+            trunc = w_start !== 0 ? "... " : "",
+
+            line_number = n => ` ${(sp.repeat(3)+n).slice(-(l+1+"").length)}: `,
+
+            error_border = thick_line.repeat(curr_line_o.length + line_number.length + 8 + trunc.length);
+
+        return [
+                `${message} at ${l}:${char - ((l > 0) ? 1 : 0)}`,
+                `${error_border}`,
+                `${prev_line ?  line_number(l-1)+trunc+prev_line_o+(prev_line_o.length < prev_line.length ?  " ..." : "") : ""}`,
+                `${curr_line ?  line_number(l)+trunc+curr_line_o+(curr_line_o.length < curr_line.length ?  " ..." : "") : ""}`,
+                `${line.repeat(w_pointer_pos +trunc.length+ line_number(l+1).length)+arrow}`,
+                `${next_line ? line_number(l+1)+trunc+next_line_o+(next_line_o.length < next_line.length ?  " ..." : "") : ""}`,
+                `${error_border}`
+            ]
+            .filter(e => !!e)
+            .join("\n");
+    }
+
+    errorMessageWithIWS(...v) {
+        return this.errorMessage(...v) + "\n" + (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "";
     }
 
     /**
