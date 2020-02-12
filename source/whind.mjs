@@ -183,17 +183,37 @@ class Lexer {
     /**
         Looks for the string within the text and returns a new lexer at the location of the first occurance of the token or 
     */
-    find(string){
-        const cp = this.pk, match = this.copy().reset();
+    find(string) {
+        const cp = this.pk,
+            match = this.copy();
+
+        match.resetHead();
         match.str = string;
-        match.tl = 0;
+        match.sl = string.length;
         cp.tl = 0;
-        while(!cp.END){
-            const mpk = match.pk, cpk = cp.pk;
-            while(!mpk.END && !cpk.END && cpk.tx == mpk.tx){cpk.next(); mpk.next()}
-            if(mpk.END) return cp.next();
-            cp.sync(cpk);
+        const char_cache = cp.CHARACTERS_ONLY;
+        match.CHARACTERS_ONLY = true;
+        cp.CHARACTERS_ONLY = true;
+
+        while (!cp.END) {
+
+            const
+                mpk = match.pk,
+                cpk = cp.pk;
+
+            while (!mpk.END && !cpk.END && cpk.tx == mpk.tx) {
+                cpk.next();
+                mpk.next();
+            }
+
+            if (mpk.END) {
+                cp.CHARACTERS_ONLY = char_cache;
+                return cp.next();
+            }
+
+            cp.next();
         }
+
         return cp;
     }
 
@@ -430,7 +450,7 @@ class Lexer {
                     length = off - base;
                     break;
                 case 4: //TAB SET
-                    while (++off < l && str[off] === HORIZONTAL_TAB);
+                    while (++off < l && str[off] === "\t");
                     type = white_space;
                     length = off - base;
                     break;

@@ -1,4 +1,4 @@
-const chai = require("chai");
+import chai from "chai";
 chai.should();
 
 const test_string = `
@@ -7,7 +7,14 @@ const test_string = `
 
     `;
 
-import whind from "../source/whind";
+    const test_string2 = `
+        Here in lies all that matters: a nuൗmber, 101, a symbol, #, a string,
+            "some day", the brackets, [{<()>}], and the rest, +=!@.
+        This is a another line that contains far less then it should.
+    `;
+
+
+import whind from "../source/whind.mjs";
 
 const constr = whind.constructor;
 
@@ -63,12 +70,32 @@ describe("Test", function() {
 
         i.should.equal(4);
 
-    })
-    /*
-    it("Identifies \' in a abbreviation as part of the word.", function {
-        let lex = new constr(`We're always glad to be of service. Let's never forget why we're here.`);
-        lex.a("We're").a("always").a("glad").a("to").a("be").a("of").a("service").a(".").
-        lex.a("Let's").a("never").a("forget").a("why").a("we're").a("here").a(".");
     });
-    */
+
+    it("Is able to find the start of a matched substring", function(){
+        whind(test_string2).find("[{<(").tx.should.equal("[");
+        whind(test_string2).find("rest, +").tx.should.equal("rest");
+        whind(test_string2).find("nuൗmber").tx.should.equal("nuൗmber");
+    });
+
+    it("Creates a meaningful syntax error message", function(){
+        const lex = whind(test_string2);
+        let r = lex.find("[{<(");
+        r.errorMessage(`[ ${r.tx} ]`).should.equal(
+`[ [ ] at 2:38
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 1: ... ies all that matters: a nuൗmber, 101, a  ...
+ 2: ... day", the brackets, [{<()>}], and the re ...
+────────────────────────────⮉
+ 3: ... another line that contains far less then ...
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+        r = lex.find("nuൗmber");
+        r.errorMessage(`[ ${r.tx} ]`).should.equal(
+`[ nuൗmber ] at 1:41
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 1: ... all that matters: a nuൗmber, 101, a symb ...
+────────────────────────────⮉
+ 2: ... , the brackets, [{<()>}], and the rest,  ...
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    });
 });
