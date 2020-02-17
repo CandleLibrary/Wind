@@ -7,7 +7,7 @@ var whind = (function (exports) {
 	const uni_id_cont_r=[48,57,768,879,1155,1159,1425,1469,1473,1474,1476,1477,1552,1562,1611,1641,1750,1756,1759,1764,1767,1768,1770,1773,1776,1785,1840,1866,1958,1968,1984,1993,2027,2035,2070,2073,2075,2083,2085,2087,2089,2093,2137,2139,2259,2273,2275,2307,2362,2364,2366,2383,2385,2391,2402,2403,2406,2415,2433,2435,2494,2500,2503,2504,2507,2509,2530,2531,2534,2543,2561,2563,2622,2626,2631,2632,2635,2637,2662,2673,2689,2691,2750,2757,2759,2761,2763,2765,2786,2787,2790,2799,2810,2815,2817,2819,2878,2884,2887,2888,2891,2893,2902,2903,2914,2915,2918,2927,3006,3010,3014,3016,3018,3021,3046,3055,3072,3076,3134,3140,3142,3144,3146,3149,3157,3158,3170,3171,3174,3183,3201,3203,3262,3268,3270,3272,3274,3277,3285,3286,3298,3299,3302,3311,3328,3331,3387,3388,3390,3396,3398,3400,3402,3405,3426,3427,3430,3439,3458,3459,3535,3540,3544,3551,3558,3567,3570,3571,3636,3642,3655,3662,3664,3673,3764,3772,3784,3789,3792,3801,3864,3865,3872,3881,3902,3903,3953,3972,3974,3975,3981,3991,3993,4028,4139,4158,4160,4169,4182,4185,4190,4192,4194,4196,4199,4205,4209,4212,4226,4237,4239,4253,4957,4959,5906,5908,5938,5940,5970,5971,6002,6003,6068,6099,6112,6121,6155,6157,6160,6169,6277,6278,6432,6443,6448,6459,6470,6479,6608,6617,6679,6683,6741,6750,6752,6780,6783,6793,6800,6809,6832,6845,6912,6916,6964,6980,6992,7001,7019,7027,7040,7042,7073,7085,7088,7097,7142,7155,7204,7223,7232,7241,7248,7257,7376,7378,7380,7400,7415,7417,7616,7673,7675,7679,8255,8256,8400,8412,8421,8432,11503,11505,11744,11775,12330,12335,12441,12442,42528,42537,42612,42621,42654,42655,42736,42737,43043,43047,43136,43137,43188,43205,43216,43225,43232,43249,43263,43273,43302,43309,43335,43347,43392,43395,43443,43456,43472,43481,43504,43513,43561,43574,43596,43597,43600,43609,43643,43645,43698,43700,43703,43704,43710,43711,43755,43759,43765,43766,44003,44010,44012,44013,44016,44025,65024,65039,65056,65071,65075,65076,65101,65103,65296,65305,66422,66426,66720,66729,68097,68099,68101,68102,68108,68111,68152,68154,68325,68326,68900,68903,68912,68921,69446,69456,69632,69634,69688,69702,69734,69743,69759,69762,69808,69818,69872,69881,69888,69890,69927,69940,69942,69951,69957,69958,70016,70018,70067,70080,70089,70092,70096,70105,70188,70199,70367,70378,70384,70393,70400,70403,70459,70460,70462,70468,70471,70472,70475,70477,70498,70499,70502,70508,70512,70516,70709,70726,70736,70745,70832,70851,70864,70873,71087,71093,71096,71104,71132,71133,71216,71232,71248,71257,71339,71351,71360,71369,71453,71467,71472,71481,71724,71738,71904,71913,72145,72151,72154,72160,72193,72202,72243,72249,72251,72254,72273,72283,72330,72345,72751,72758,72760,72767,72784,72793,72850,72871,72873,72886,73009,73014,73020,73021,73023,73029,73040,73049,73098,73102,73104,73105,73107,73111,73120,73129,73459,73462,92768,92777,92912,92916,92976,92982,93008,93017,94033,94087,94095,94098,113821,113822,119141,119145,119149,119154,119163,119170,119173,119179,119210,119213,119362,119364,120782,120831,121344,121398,121403,121452,121499,121503,121505,121519,122880,122886,122888,122904,122907,122913,122915,122916,122918,122922,123184,123190,123200,123209,123628,123641,125136,125142,125252,125258,125264,125273];
 
 	///*
-	const j = new Uint16Array(130000);
+	const j = new Uint16Array(100000);
 
 	j.fill(0);
 
@@ -28,8 +28,9 @@ var whind = (function (exports) {
 		}
 	}
 
-	//0. Number
-	air(j, 0, 48, 57);
+
+	//7. Symbol
+	// Default Value
 
 	//1. Identifier
 	air(j, 1, ...uni_id_start_r);
@@ -39,9 +40,9 @@ var whind = (function (exports) {
 	aii(j, 2, 34, 39, 96);
 
 	//3. SPACE SET
-	aii(j, 3, 32);
+	aii(j, 3, 32, 0xA0, 0x2002, 0x2003, 0x2004, 0x3000);
 
-	//4. SPACE SET
+	//4. TAB SET
 	aii(j, 4, 9);
 
 	//5. CARIAGE RETURN 
@@ -50,8 +51,8 @@ var whind = (function (exports) {
 	//6. CARIAGE RETURN 
 	aii(j, 6, 10);
 
-	//7. Symbol
-	air(j, 0, 0, 8, 11, 12, 14, 15, 17, 31, 35, 36, 44, 47, 59, 59, 63, 64, 92, 92, 94, 94, 95, 95, 124, 124, 126, 127);
+	//7. Number
+	air(j, 7, 48, 57);
 
 	//8. Operator
 	aii(j, 8, 33, 37, 38, 42, 43, 58, 60, 61, 62);
@@ -80,18 +81,12 @@ var whind = (function (exports) {
 	 * Number are masked by 12(4|8) and Identifiers are masked by 10(2|8)
 	 */
 
-	// entries marked as `0` are not evaluated as either being in the number set or the identifier set.
-	air(j, 0 << 8, 0, 47, 58, 64, 91, 96, 123, 127);
-
 	// entries marked as `2` are in the identifier set but not the number set
 	air(j, 2 << 8, 65, 90, 97, 122);
 	air(j, 2 << 8, ...uni_id_start_r);
 	aii(j, 2 << 8, ...uni_id_start);
 	air(j, 2 << 8, ...uni_id_cont_r);
 	aii(j, 2 << 8, ...uni_id_cont);
-
-	// entries marked as `4` are in the number set but not the identifier set
-	//air(nait, 4, 48,57);
 
 	// entries marked as `8` are in both number and identifier sets
 	air(j, 8 << 8, 48, 57);
@@ -158,6 +153,10 @@ var whind = (function (exports) {
 	    ];
 
 	const getNumbrOfTrailingZeroBitsFromPowerOf2 = (value) => debruijnLUT[(value * 0x077CB531) >>> 27];
+
+	const arrow = String.fromCharCode(0x2b89);
+	const line = String.fromCharCode(0x2500);
+	const thick_line = String.fromCharCode(0x2501);
 
 	class Lexer {
 
@@ -273,47 +272,128 @@ var whind = (function (exports) {
 	    }
 
 	    /**
+	        Looks for the string within the text and returns a new lexer at the location of the first occurance of the token or 
+	    */
+	    find(string) {
+	        const cp = this.pk,
+	            match = this.copy();
+
+	        match.resetHead();
+	        match.str = string;
+	        match.sl = string.length;
+	        cp.tl = 0;
+	        const char_cache = cp.CHARACTERS_ONLY;
+	        match.CHARACTERS_ONLY = true;
+	        cp.CHARACTERS_ONLY = true;
+
+	        while (!cp.END) {
+
+	            const
+	                mpk = match.pk,
+	                cpk = cp.pk;
+
+	            while (!mpk.END && !cpk.END && cpk.tx == mpk.tx) {
+	                cpk.next();
+	                mpk.next();
+	            }
+
+	            if (mpk.END) {
+	                cp.CHARACTERS_ONLY = char_cache;
+	                return cp.next();
+	            }
+
+	            cp.next();
+	        }
+
+	        return cp;
+	    }
+
+	    /**
 	    Creates an error message with a diagram illustrating the location of the error. 
 	    */
-	    errorMessage(message = "") {
-	        const pk = this.copy();
+	    errorMessage(message = "", window_size = 40, tab_size = 4) {
 
-	        pk.IWS = false;
+	        //Get the text from the proceeding and the following lines; 
+	        //If current line is at index 0 then there will be no proceeeding line;
+	        //Likewise for the following line if current line is the last one in the string.
 
-	        while (!pk.END && pk.ty !== Types.nl) { pk.next(); }
+	        const line_start = this.off - this.char,
+	            char = this.char,
+	            l = this.line,
+	            str = this.str,
+	            len = str.length,
+	            sp = " ";
 
-	        const end = (pk.END) ? this.str.length : pk.off,
+	        let prev_start = 0,
+	            next_start = 0,
+	            next_end = 0,
+	            i = 0;
 
-	            nls = (this.line > 0) ? 1 : 0,
-	            number_of_tabs = this.str
-	            .slice(this.off - this.char + nls + nls, this.off + nls)
-	            .split("")
-	            .reduce((r, v) => (r + ((v.charCodeAt(0) == HORIZONTAL_TAB) | 0)), 0),
 
-	            arrow = String.fromCharCode(0x2b89),
+	        //get the start of the proceeding line
+	        for (i = char; --i > 0 && j[str.codePointAt(i)] !== 6;);
+	        prev_start = i;
 
-	            line = String.fromCharCode(0x2500),
+	        //get the end of the current line...
+	        for (i = this.off + this.tl; i++ < len && j[str.codePointAt(i)] !== 6;);
+	        next_start = i;
 
-	            thick_line = String.fromCharCode(0x2501),
+	        //and the next line
+	        for (; i++ < len && j[str.codePointAt(i)] !== 6;);
+	        next_end = i;
 
-	            line_number = `    ${this.line+1}: `,
+	        let pointer_pos = char - (line_start > 0 ? 1 : 0);
 
-	            line_fill = line_number.length + number_of_tabs,
+	        for (i = line_start; ++i < this.off;)
+	            if (str.codePointAt(i) == HORIZONTAL_TAB)
+	                pointer_pos += tab_size - 1;
 
-	            line_text = this.str.slice(this.off - this.char + nls + (nls), end).replace(/\t/g, "  "),
+	        //find the location of the offending symbol
+	        const
+	            prev_line = str.slice(prev_start + (prev_start > 0 ? 1 : 0), line_start).replace(/\t/g, sp.repeat(tab_size)),
+	            curr_line = str.slice(line_start + (line_start > 0 ? 1 : 0), next_start).replace(/\t/g, sp.repeat(tab_size)),
+	            next_line = str.slice(next_start + 1, next_end).replace(/\t/g, " "),
 
-	            error_border = thick_line.repeat(line_text.length + line_number.length + 2),
+	            //get the max line length;
+	        
+	            max_length = Math.max(prev_line.length, curr_line.length, next_line.length),
+	            min_length = Math.min(prev_line.length, curr_line.length, next_line.length),
+	            length_diff = max_length - min_length,
 
-	            is_iws = (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "",
+	            //Get the window size;
+	            w_size = window_size,
+	            w_start = Math.max(0, Math.min(pointer_pos - w_size / 2, max_length)),
+	            w_end = Math.max(0, Math.min(pointer_pos + w_size / 2, max_length)),
+	            w_pointer_pos = Math.max(0, Math.min(pointer_pos, max_length)) - w_start,
 
-	            msg = [`${message} at ${this.line+1}:${this.char - nls}`,
-	            `${error_border}`,
-	            `${line_number+line_text}`,
-	            `${line.repeat(this.char-nls+line_fill-(nls))+arrow}`,
-	            `${error_border}`,
-	            `${is_iws}`].join("\n");
 
-	        return msg;
+	            //append the difference of line lengths to the end of the lines as space characers;
+
+	            prev_line_o = (prev_line + sp.repeat(length_diff)).slice(w_start, w_end),
+	            curr_line_o = (curr_line + sp.repeat(length_diff)).slice(w_start, w_end),
+	            next_line_o = (next_line + sp.repeat(length_diff)).slice(w_start, w_end),
+
+	            trunc = w_start !== 0 ? "... " : "",
+
+	            line_number = n => ` ${(sp.repeat(3)+n).slice(-(l+1+"").length)}: `,
+
+	            error_border = thick_line.repeat(curr_line_o.length + line_number.length + 8 + trunc.length);
+
+	        return [
+	                `${message} at ${l}:${char - ((l > 0) ? 1 : 0)}`,
+	                `${error_border}`,
+	                `${prev_line ?  line_number(l-1)+trunc+prev_line_o+(prev_line_o.length < prev_line.length ?  " ..." : "") : ""}`,
+	                `${curr_line ?  line_number(l)+trunc+curr_line_o+(curr_line_o.length < curr_line.length ?  " ..." : "") : ""}`,
+	                `${line.repeat(w_pointer_pos +trunc.length+ line_number(l+1).length)+arrow}`,
+	                `${next_line ? line_number(l+1)+trunc+next_line_o+(next_line_o.length < next_line.length ?  " ..." : "") : ""}`,
+	                `${error_border}`
+	            ]
+	            .filter(e => !!e)
+	            .join("\n");
+	    }
+
+	    errorMessageWithIWS(...v) {
+	        return this.errorMessage(...v) + "\n" + (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "";
 	    }
 
 	    /**
@@ -460,7 +540,7 @@ var whind = (function (exports) {
 	                    length = off - base;
 	                    break;
 	                case 4: //TAB SET
-	                    while (++off < l && str[off] === HORIZONTAL_TAB);
+	                    while (++off < l && str[off] === "\t");
 	                    type = white_space;
 	                    length = off - base;
 	                    break;
