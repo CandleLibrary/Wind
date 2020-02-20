@@ -158,6 +158,7 @@ class Lexer {
         destination.sl = this.sl;
         destination.masked_values = this.masked_values;
         destination.id_lu = this.id_lu;
+        destination.symbol_map = this.symbol_map;
         return destination;
     }
 
@@ -237,7 +238,6 @@ class Lexer {
             next_start = 0,
             next_end = 0,
             i = 0;
-
 
         //get the start of the proceeding line
         for (i = char; --i > 0 && jump_table[str.codePointAt(i)] !== 6;);
