@@ -158,7 +158,10 @@ class Lexer {
         destination.sl = this.sl;
         destination.masked_values = this.masked_values;
         destination.id_lu = this.id_lu;
+        destination.type = this.type;
+        destination.tl = this.tl;
         destination.symbol_map = this.symbol_map;
+        destination.IWS = this.IWS;
         return destination;
     }
 
