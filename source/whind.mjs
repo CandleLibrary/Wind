@@ -52,7 +52,8 @@ const
     PARSE_STRING_MASK = 0x10,
     IGNORE_WHITESPACE_MASK = 0x20,
     CHARACTERS_ONLY_MASK = 0x40,
-    TOKEN_LENGTH_MASK = 0xFFFFFF80,
+    USE_EXTENDED_ID_MASK = 0x80,
+    TOKEN_LENGTH_MASK = 0xFFFFFF00,
 
     //De Bruijn Sequence for finding index of right most bit set.
     //http://supertech.csail.mit.edu/papers/debruijn.pdf
@@ -124,8 +125,6 @@ class Lexer {
          */
         this.PARSE_STRING = false;
 
-        this.id_lu = jump_table;
-
         if (!PEEKING) this.next();
     }
 
@@ -156,12 +155,9 @@ class Lexer {
         destination.char = this.char;
         destination.line = this.line;
         destination.sl = this.sl;
-        destination.masked_values = this.masked_values;
-        destination.id_lu = this.id_lu;
         destination.type = this.type;
-        destination.tl = this.tl;
         destination.symbol_map = this.symbol_map;
-        destination.IWS = this.IWS;
+        destination.masked_values = this.masked_values;
         return destination;
     }
 
@@ -417,7 +413,6 @@ class Lexer {
                 NORMAL_PARSE = false;
                 base = off;
                 length = off2 - off;
-                //char += length;
             }
         }
 
@@ -832,11 +827,11 @@ class Lexer {
     }
 
     get token_length() {
-        return ((this.masked_values & TOKEN_LENGTH_MASK) >> 7);
+        return ((this.masked_values & TOKEN_LENGTH_MASK) >> 8);
     }
 
     set token_length(value) {
-        this.masked_values = (this.masked_values & ~TOKEN_LENGTH_MASK) | (((value << 7) | 0) & TOKEN_LENGTH_MASK);
+        this.masked_values = (this.masked_values & ~TOKEN_LENGTH_MASK) | (((value << 8) | 0) & TOKEN_LENGTH_MASK);
     }
 
     get IGNORE_WHITE_SPACE() {
@@ -871,6 +866,14 @@ class Lexer {
         this.masked_values = (this.masked_values & ~PARSE_STRING_MASK) | ((boolean | 0) << 4);
     }
 
+    get USE_EXTENDED_ID() {
+        return !!(this.masked_values & USE_EXTENDED_ID_MASK);
+    }
+
+    set USE_EXTENDED_ID(boolean) {
+        this.masked_values = (this.masked_values & ~USE_EXTENDED_ID_MASK) | ((boolean | 0) << 8);
+    }
+
     /**
      * Reference to token id types.
      */
@@ -878,7 +881,7 @@ class Lexer {
         return Types;
     }
 }
-
+Lexer.prototype.id_lu = jump_table;
 Lexer.prototype.addCharacter = Lexer.prototype.addSymbol;
 
 function whind(string, INCLUDE_WHITE_SPACE_TOKENS = false) { return new Lexer(string, INCLUDE_WHITE_SPACE_TOKENS) }
@@ -888,5 +891,6 @@ whind.constructor = Lexer;
 Lexer.types = Types;
 whind.types = Types;
 
-export { Lexer };
+import * as ascii from "./ascii_code_points.mjs";
+export { Lexer, ascii };
 export default whind;
