@@ -71,21 +71,33 @@ aii(j, 11, 16);
  * entries marked as `2` are in the identifier set but not the number set
  * entries marked as `4` are in the number set but not the identifier set
  * entries marked as `8` are in both number and identifier sets
+ * entries marked as `8` are in number, identifier, hex, bin, and oct sets;
  */
+
+ export const id = 2, num = 4, hex = 16, oct = 32, bin = 64;
 
 /**
  * LExer Number and Identifier jump table reference
- * Number are masked by 12(4|8) and Identifiers are masked by 10(2|8)
+ * Number are masked by [ 4 ] and Identifiers are masked by 6 [ 2 | 4 ] 
  */
 
 // entries marked as `2` are in the identifier set but not the number set
-air(j, 2 << 8, 65, 90, 97, 122);
-air(j, 2 << 8, ...uni_id_start_r);
-aii(j, 2 << 8, ...uni_id_start);
-air(j, 2 << 8, ...uni_id_cont_r);
-aii(j, 2 << 8, ...uni_id_cont);
+air(j, id << 8, 65, 90, 97, 122);
+air(j, id << 8, ...uni_id_start_r);
+aii(j, id << 8, ...uni_id_start);
+air(j, id << 8, ...uni_id_cont_r);
+aii(j, id << 8, ...uni_id_cont);
 
-// entries marked as `8` are in both number and identifier sets
-air(j, 8 << 8, 48, 57);
+//For hex numbers [AF] and [af]
+air(j, hex << 8, 65, 70, 97, 122);
 
-export default j;
+//For bin numbers [01]
+air(j, bin << 8, 48, 49);
+
+//For oct numbers [07]
+air(j, oct << 8, 48, 47);
+
+//For the whole natural digit range
+air(j, (num|hex) << 8, 48, 57);
+
+export {j as jump_table};
