@@ -1,7 +1,14 @@
 const HORIZONTAL_TAB = 9;
 const SPACE = 32;
 
-import jump_table from "./tables/basic.mjs";
+import {
+    jump_table,
+    id,
+    num,
+    hex,
+    oct,
+    bin
+} from "./tables.js";
 
 
 const extended_jump_table = jump_table.slice();
@@ -19,6 +26,12 @@ const
     symbol = 128,
     new_line = 256,
     data_link = 512,
+    number_bin = number | 1024,
+    number_oct = number | 2048,
+    number_hex = number | 4096,
+    number_int = number | 8192,
+    number_sci = number | 16384,
+    number_flt = number | 32768,
     alpha_numeric = (identifier | number),
     white_space_new_line = (white_space | new_line),
     Types = {
@@ -44,6 +57,20 @@ const
         data_link,
         alpha_numeric,
         white_space_new_line,
+        //*
+        int: number_int,
+        integer: number_int,
+        bin: number_bin,
+        binary: number_bin,
+        oct: number_oct,
+        octal: number_oct,
+        hex: number_hex,
+        hexadecimal: number_hex,
+        flt: number_flt,
+        float: number_flt,
+        sci: number_sci,
+        scientific: number_sci,
+       // */
     },
 
     /*** MASKS ***/
@@ -87,7 +114,7 @@ class Lexer {
         /**
          * The type id of the current token.
          */
-        this.type = 32768; //Default "non-value" for types is 1<<15;
+        this.type = 262144; //Default "non-value" for types is 1<<18;
 
         /**
          * The offset in the string of the start of the current token.
@@ -105,9 +132,10 @@ class Lexer {
          */
         this.line = 0;
         /**
-         * The length of the string being parsed
+         * The length of the string being parsed. Can be adjusted to virtually shorten the screen. 
          */
         this.sl = string.length;
+        
         /**
          * The length of the current token.
          */
@@ -263,7 +291,7 @@ class Lexer {
             next_line = str.slice(next_start + 1, next_end).replace(/\t/g, " "),
 
             //get the max line length;
-        
+
             max_length = Math.max(prev_line.length, curr_line.length, next_line.length),
             min_length = Math.min(prev_line.length, curr_line.length, next_line.length),
             length_diff = max_length - min_length,
@@ -424,12 +452,12 @@ class Lexer {
 
             const code = str.codePointAt(off);
 
-            switch (jump_table[code] & 255) {
+            outer: switch (jump_table[code] & 255) {
                 case 0: //SYMBOL
                     type = symbol;
                     break;
                 case 1: //IDENTIFIER
-                    while (++off < l && ((10 & (jump_table[str.codePointAt(off)] >> 8))));
+                    while (++off < l && (((id | num) & (jump_table[str.codePointAt(off)] >> 8))));
                     type = identifier;
                     length = off - base;
                     break;
@@ -464,19 +492,50 @@ class Lexer {
                     char = 0;
                     break;
                 case 7: //NUMBER
-                    while (++off < l && (12 & (jump_table[str.codePointAt(off)] >> 8)));
-
-                    if ((str[off] == "e" || str[off] == "E") && (12 & (jump_table[str.codePointAt(off + 1)] >> 8))) {
+                    type = number;
+                    //Check for binary, hexidecimal, and octal representation
+                    if (code == 48) { // 0 - ZERO
                         off++;
-                        if (str[off] == "-") off++;
-                        marker.off = off;
-                        marker.tl = 0;
-                        marker.next();
-                        off = marker.off + marker.tl;
-                        //Add e to the number string
+                        if (("oxbOXB").includes(str[off])) {
+                            const lups = { b: { lu: bin, ty: number_bin }, o: { lu: oct, ty: number_oct }, x: { lu: hex, ty: number_hex } };
+                            const { lu, ty } = lups[str[off].toLowerCase()];
+
+                            //Code of first char after the letter should
+                            // be within the range of the respective lu type : hex, oct, or bin
+                            if ((lu & (jump_table[str.codePointAt(off + 1)] >> 8))) {
+                                while (++off < l && (lu & (jump_table[str.codePointAt(off)] >> 8)));
+                                type = ty
+                            }
+                            //return just the 0
+                        }
+
+                        //The number is just 0. Do not allow 0221, 00007, etc.
+
+                    } else {
+                        while (++off < l && (num & (jump_table[str.codePointAt(off)] >> 8)));
+
+                        if (str[off] == ".") {
+                            while (++off < l && (num & (jump_table[str.codePointAt(off)] >> 8)));
+                            //float
+                            type = number_flt;
+                        }
+
+                        if (("Ee").includes(str[off])) {
+                            const ori_off = off;
+                            //Add e to the number string
+                            off++;
+                            if (("-+").includes(str[off])) off++;
+
+                            if (!(num & (jump_table[str.codePointAt(off)] >> 8))) {
+                                off = ori_off;
+                            } else {
+                                while (++off < l && (num & (jump_table[str.codePointAt(off)] >> 8)));
+                                type = number_sci;
+                            }
+                            //scientific 
+                        }
                     }
 
-                    type = number;
                     length = off - base;
 
                     break;
@@ -808,16 +867,16 @@ class Lexer {
 
     get END() { return this.off >= this.sl }
     set END(v) {}
+    /*
+        get type() {
+            return 1 << (this.masked_values & TYPE_MASK);
+        }
 
-    get type() {
-        return 1 << (this.masked_values & TYPE_MASK);
-    }
-
-    set type(value) {
-        //assuming power of 2 value.
-        this.masked_values = (this.masked_values & ~TYPE_MASK) | ((getNumbrOfTrailingZeroBitsFromPowerOf2(value)) & TYPE_MASK);
-    }
-
+        set type(value) {
+            //assuming power of 2 value.
+            this.masked_values = (this.masked_values & ~TYPE_MASK) | ((getNumbrOfTrailingZeroBitsFromPowerOf2(value)) & TYPE_MASK);
+        }
+    */
     get tl() {
         return this.token_length;
     }
