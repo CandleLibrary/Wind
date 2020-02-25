@@ -521,7 +521,10 @@ class Lexer {
                         //The number is just 0. Do not allow 0221, 00007, etc.
 
                     } else {
+                        
                         while (++off < l && (num & (jump_table[str.codePointAt(off)] >> 8)));
+
+                        type = number_int;
 
                         if (str[off] == ".") {
                             while (++off < l && (num & (jump_table[str.codePointAt(off)] >> 8)));
