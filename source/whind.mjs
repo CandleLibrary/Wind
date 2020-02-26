@@ -70,10 +70,10 @@ const
         float: number_flt,
         sci: number_sci,
         scientific: number_sci,
-       // */
+        // */
     },
 
-    /*** MASKS ***/
+    /** MASKS ***/
 
     TYPE_MASK = 0xF,
     PARSE_STRING_MASK = 0x10,
@@ -102,57 +102,68 @@ class Lexer {
 
         if (typeof(string) !== "string") throw new Error(`String value must be passed to Lexer. A ${typeof(string)} was passed as the \`string\` argument.`);
 
-        /**
-         * The string that the Lexer tokenizes.
-         */
-        this.str = string;
+        Object.defineProperties(this, {
+            symbol_map: { // Really Don't need to see this when logging
+                writable: true,
+                value: null
+            },
+            // Reference to the peeking Lexer.
+            p: {
+                writable: true,
+                value: null
+            },
+            //Stores values accessed through binary operations
+            masked_values: {
+                writable: true,
+                value: 0
+            },
+            //  The length of the string being parsed. Can be adjusted to virtually shorten the screen. 
+            sl: {
+                writable: true,
+                value: string.length
+            },
+            //  The string that the Lexer tokenizes.
+            str: {
+                writable: false,
+                value: string
+            }
+        })
 
-        /**
-         * Reference to the peeking Lexer.
-         */
-        this.p = null;
-
-        /**
+        /*
          * The type id of the current token.
          */
         this.type = 262144; //Default "non-value" for types is 1<<18;
 
-        /**
+        /*
          * The offset in the string of the start of the current token.
          */
         this.off = 0;
 
-        this.masked_values = 0;
-
-        /**
+        /*
          * The character offset of the current token within a line.
          */
         this.char = 0;
-        /**
+        /*
          * The line position of the current token.
          */
         this.line = 0;
-        /**
-         * The length of the string being parsed. Can be adjusted to virtually shorten the screen. 
-         */
-        this.sl = string.length;
-        
-        /**
+
+        /*
          * The length of the current token.
          */
         this.tl = 0;
 
-        /**
+        /*
          * Flag to ignore white spaced.
          */
         this.IWS = !INCLUDE_WHITE_SPACE_TOKENS;
 
         this.USE_EXTENDED_ID = false;
 
-        this.USE_EXTENDED_NUMBER_TYPES = true;
-
-        /**
-         * Flag to force the lexer to parse string contents
+        /*
+         * Flag to force the lexer to parse string contents 
+         * instead of producing a token that is a substring matched
+         * by /["''].*["'']/
          */
         this.PARSE_STRING = false;
 
@@ -166,203 +177,8 @@ class Lexer {
         if (!PEEKING) this.next();
     }
 
-    useExtendedId() {
-        this.id_lu = extended_jump_table;
-        this.tl = 0;
-        this.next();
-        return this;
-    }
 
-    /**
-     * Restricts max parse distance to the other Lexer's current position.
-     * @param      {Lexer}  Lexer   The Lexer to limit parse distance by.
-     */
-    fence(marker = this) {
-        if (marker.str !== this.str)
-            return;
-        this.sl = marker.off;
-        return this;
-    }
-
-    /**
-     * Copies the Lexer.
-     * @return     {Lexer}  Returns a new Lexer instance with the same property values.
-     */
-    copy(destination = new Lexer(this.str, false, true)) {
-        destination.off = this.off;
-        destination.char = this.char;
-        destination.line = this.line;
-        destination.sl = this.sl;
-        destination.type = this.type;
-        destination.symbol_map = this.symbol_map;
-        destination.masked_values = this.masked_values;
-        return destination;
-    }
-
-    /**
-     * Given another Lexer with the same `str` property value, it will copy the state of that Lexer.
-     * @param      {Lexer}  [marker=this.peek]  The Lexer to clone the state from. 
-     * @throws     {Error} Throws an error if the Lexers reference different strings.
-     * @public
-     */
-    sync(marker = this.p) {
-
-        if (marker instanceof Lexer) {
-            if (marker.str !== this.str) throw new Error("Cannot sync Lexers with different strings!");
-            this.off = marker.off;
-            this.char = marker.char;
-            this.line = marker.line;
-            this.masked_values = marker.masked_values;
-        }
-
-        return this;
-    }
-
-    /**
-        Looks for the string within the text and returns a new lexer at the location of the first occurance of the token or 
-    */
-    find(string) {
-        const cp = this.pk,
-            match = this.copy();
-
-        match.resetHead();
-        match.str = string;
-        match.sl = string.length;
-        cp.tl = 0;
-        const char_cache = cp.CHARACTERS_ONLY;
-        match.CHARACTERS_ONLY = true;
-        cp.CHARACTERS_ONLY = true;
-
-        while (!cp.END) {
-
-            const
-                mpk = match.pk,
-                cpk = cp.pk;
-
-            while (!mpk.END && !cpk.END && cpk.tx == mpk.tx) {
-                cpk.next();
-                mpk.next();
-            }
-
-            if (mpk.END) {
-                cp.CHARACTERS_ONLY = char_cache;
-                return cp.next();
-            }
-
-            cp.next();
-        }
-
-        return cp;
-    }
-
-    /**
-    Creates an error message with a diagram illustrating the location of the error. 
-    */
-    errorMessage(message = "", window_size = 40, tab_size = 4) {
-
-        //Get the text from the proceeding and the following lines; 
-        //If current line is at index 0 then there will be no proceeeding line;
-        //Likewise for the following line if current line is the last one in the string.
-
-        const line_start = this.off - this.char,
-            char = this.char,
-            l = this.line,
-            str = this.str,
-            len = str.length,
-            sp = " ";
-
-        let prev_start = 0,
-            next_start = 0,
-            next_end = 0,
-            i = 0;
-
-        //get the start of the proceeding line
-        for (i = char; --i > 0 && jump_table[str.codePointAt(i)] !== 6;);
-        prev_start = i;
-
-        //get the end of the current line...
-        for (i = this.off + this.tl; i++ < len && jump_table[str.codePointAt(i)] !== 6;);
-        next_start = i;
-
-        //and the next line
-        for (; i++ < len && jump_table[str.codePointAt(i)] !== 6;);
-        next_end = i;
-
-        let pointer_pos = char - (line_start > 0 ? 1 : 0);
-
-        for (i = line_start; ++i < this.off;)
-            if (str.codePointAt(i) == HORIZONTAL_TAB)
-                pointer_pos += tab_size - 1;
-
-        //find the location of the offending symbol
-        const
-            prev_line = str.slice(prev_start + (prev_start > 0 ? 1 : 0), line_start).replace(/\t/g, sp.repeat(tab_size)),
-            curr_line = str.slice(line_start + (line_start > 0 ? 1 : 0), next_start).replace(/\t/g, sp.repeat(tab_size)),
-            next_line = str.slice(next_start + 1, next_end).replace(/\t/g, " "),
-
-            //get the max line length;
-
-            max_length = Math.max(prev_line.length, curr_line.length, next_line.length),
-            min_length = Math.min(prev_line.length, curr_line.length, next_line.length),
-            length_diff = max_length - min_length,
-
-            //Get the window size;
-            w_size = window_size,
-            w_start = Math.max(0, Math.min(pointer_pos - w_size / 2, max_length)),
-            w_end = Math.max(0, Math.min(pointer_pos + w_size / 2, max_length)),
-            w_pointer_pos = Math.max(0, Math.min(pointer_pos, max_length)) - w_start,
-
-
-            //append the difference of line lengths to the end of the lines as space characers;
-
-            prev_line_o = (prev_line + sp.repeat(length_diff)).slice(w_start, w_end),
-            curr_line_o = (curr_line + sp.repeat(length_diff)).slice(w_start, w_end),
-            next_line_o = (next_line + sp.repeat(length_diff)).slice(w_start, w_end),
-
-            trunc = w_start !== 0 ? "... " : "",
-
-            line_number = n => ` ${(sp.repeat(3)+n).slice(-(l+1+"").length)}: `,
-
-            error_border = thick_line.repeat(curr_line_o.length + line_number.length + 8 + trunc.length);
-
-        return [
-                `${message} at ${l}:${char - ((l > 0) ? 1 : 0)}`,
-                `${error_border}`,
-                `${prev_line ?  line_number(l-1)+trunc+prev_line_o+(prev_line_o.length < prev_line.length ?  " ..." : "") : ""}`,
-                `${curr_line ?  line_number(l)+trunc+curr_line_o+(curr_line_o.length < curr_line.length ?  " ..." : "") : ""}`,
-                `${line.repeat(w_pointer_pos +trunc.length+ line_number(l+1).length)+arrow}`,
-                `${next_line ? line_number(l+1)+trunc+next_line_o+(next_line_o.length < next_line.length ?  " ..." : "") : ""}`,
-                `${error_border}`
-            ]
-            .filter(e => !!e)
-            .join("\n");
-    }
-
-    errorMessageWithIWS(...v) {
-        return this.errorMessage(...v) + "\n" + (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "";
-    }
-
-    /**
-     * Will throw a new Error, appending the parsed string line and position information to the the error message passed into the function.
-     * @instance
-     * @public
-     * @param {String} message - The error message.
-     * @param {Bool} DEFER - if true, returns an Error object instead of throwing.
-     */
-    throw (message, DEFER = false) {
-        const error = new Error(this.errorMessage(message));
-        if (DEFER)
-            return error;
-        throw error;
-    }
-
-    /**
-     * Proxy for Lexer.prototype.reset
-     * @public
-     */
-    r() { return this.reset() }
-
-    /**
+    /*
      * Restore the Lexer back to it's initial state.
      * @public
      */
@@ -386,7 +202,40 @@ class Lexer {
         this.type = 32768;
     }
 
-    /**
+    /*
+     * Copies the Lexer.
+     * @return     {Lexer}  Returns a new Lexer instance with the same property values.
+     */
+    copy(destination = new Lexer(this.str, false, true)) {
+        destination.off = this.off;
+        destination.char = this.char;
+        destination.line = this.line;
+        destination.sl = this.sl;
+        destination.type = this.type;
+        destination.symbol_map = this.symbol_map;
+        destination.masked_values = this.masked_values;
+        return destination;
+    }
+
+    /*
+     * Given another Lexer with the same `str` property value, it will copy the state of that Lexer.
+     * @param      {Lexer}  [marker=this.peek]  The Lexer to clone the state from. 
+     * @throws     {Error} Throws an error if the Lexers reference different strings.
+     * @public
+     */
+    sync(marker = this.p) {
+
+        if (marker instanceof Lexer) {
+            if (marker.str !== this.str) throw new Error("Cannot sync Lexers with different strings!");
+            this.off = marker.off;
+            this.char = marker.char;
+            this.line = marker.line;
+            this.masked_values = marker.masked_values;
+        }
+
+        return this;
+    }
+    /*
      * Sets the internal state to point to the next token. Sets Lexer.prototype.END to `true` if the end of the string is hit.
      * @public
      * @param {Lexer} [marker=this] - If another Lexer is passed into this method, it will advance the token state of that Lexer.
@@ -521,10 +370,10 @@ class Lexer {
                         //The number is just 0. Do not allow 0221, 00007, etc.
 
                     } else {
-                        
+
                         while (++off < l && (num & (jump_table[str.codePointAt(off)] >> 8)));
 
-                        type = number_int;
+                        //type = number_int;
 
                         if (str[off] == ".") {
                             while (++off < l && (num & (jump_table[str.codePointAt(off)] >> 8)));
@@ -593,8 +442,163 @@ class Lexer {
         return marker;
     }
 
+    /*
+     * Restricts max parse distance to the other Lexer's current position.
+     * @param      {Lexer}  Lexer   The Lexer to limit parse distance by.
+     */
+    fence(marker = this) {
+        if (marker.str !== this.str)
+            return;
+        this.sl = marker.off;
+        return this;
+    }
 
-    /**
+    /*
+        Looks for the string within the text and returns a new lexer at the location of the first occurance of the token or 
+    */
+    find(string) {
+        const cp = this.pk,
+            match = this.copy();
+
+        match.resetHead();
+        match.str = string;
+        match.sl = string.length;
+        cp.tl = 0;
+        const char_cache = cp.CHARACTERS_ONLY;
+        match.CHARACTERS_ONLY = true;
+        cp.CHARACTERS_ONLY = true;
+
+        while (!cp.END) {
+
+            const
+                mpk = match.pk,
+                cpk = cp.pk;
+
+            while (!mpk.END && !cpk.END && cpk.tx == mpk.tx) {
+                cpk.next();
+                mpk.next();
+            }
+
+            if (mpk.END) {
+                cp.CHARACTERS_ONLY = char_cache;
+                return cp.next();
+            }
+
+            cp.next();
+        }
+
+        return cp;
+    }
+
+    /*
+    Creates an error message with a diagram illustrating the location of the error. 
+    */
+    errorMessage(message = "", window_size = 40, tab_size = 4) {
+
+        // Get the text from the proceeding and the following lines; 
+        // If current line is at index 0 then there will be no proceeeding line;
+        // Likewise for the following line if current line is the last one in the string.
+
+        const line_start = this.off - this.char,
+            char = this.char,
+            l = this.line,
+            str = this.str,
+            len = str.length,
+            sp = " ";
+
+        let prev_start = 0,
+            next_start = 0,
+            next_end = 0,
+            i = 0;
+
+        //get the start of the proceeding line
+        for (i = char; --i > 0 && jump_table[str.codePointAt(i)] !== 6;);
+        prev_start = i;
+
+        //get the end of the current line...
+        for (i = this.off + this.tl; i++ < len && jump_table[str.codePointAt(i)] !== 6;);
+        next_start = i;
+
+        //and the next line
+        for (; i++ < len && jump_table[str.codePointAt(i)] !== 6;);
+        next_end = i;
+
+        let pointer_pos = char - (line_start > 0 ? 1 : 0);
+
+        for (i = line_start; ++i < this.off;)
+            if (str.codePointAt(i) == HORIZONTAL_TAB)
+                pointer_pos += tab_size - 1;
+
+        //find the location of the offending symbol
+        const
+            prev_line = str.slice(prev_start + (prev_start > 0 ? 1 : 0), line_start).replace(/\t/g, sp.repeat(tab_size)),
+            curr_line = str.slice(line_start + (line_start > 0 ? 1 : 0), next_start).replace(/\t/g, sp.repeat(tab_size)),
+            next_line = str.slice(next_start + 1, next_end).replace(/\t/g, " "),
+
+            //get the max line length;
+
+            max_length = Math.max(prev_line.length, curr_line.length, next_line.length),
+            min_length = Math.min(prev_line.length, curr_line.length, next_line.length),
+            length_diff = max_length - min_length,
+
+            //Get the window size;
+            w_size = window_size,
+            w_start = Math.max(0, Math.min(pointer_pos - w_size / 2, max_length)),
+            w_end = Math.max(0, Math.min(pointer_pos + w_size / 2, max_length)),
+            w_pointer_pos = Math.max(0, Math.min(pointer_pos, max_length)) - w_start,
+
+
+            //append the difference of line lengths to the end of the lines as space characers;
+
+            prev_line_o = (prev_line + sp.repeat(length_diff)).slice(w_start, w_end),
+            curr_line_o = (curr_line + sp.repeat(length_diff)).slice(w_start, w_end),
+            next_line_o = (next_line + sp.repeat(length_diff)).slice(w_start, w_end),
+
+            trunc = w_start !== 0 ? "... " : "",
+
+            line_number = n => ` ${(sp.repeat(3)+n).slice(-(l+1+"").length)}: `,
+
+            error_border = thick_line.repeat(curr_line_o.length + line_number.length + 8 + trunc.length);
+
+        return [
+                `${message} at ${l}:${char - ((l > 0) ? 1 : 0)}`,
+                `${error_border}`,
+                `${prev_line ?  line_number(l-1)+trunc+prev_line_o+(prev_line_o.length < prev_line.length ?  " ..." : "") : ""}`,
+                `${curr_line ?  line_number(l)+trunc+curr_line_o+(curr_line_o.length < curr_line.length ?  " ..." : "") : ""}`,
+                `${line.repeat(w_pointer_pos +trunc.length+ line_number(l+1).length)+arrow}`,
+                `${next_line ? line_number(l+1)+trunc+next_line_o+(next_line_o.length < next_line.length ?  " ..." : "") : ""}`,
+                `${error_border}`
+            ]
+            .filter(e => !!e)
+            .join("\n");
+    }
+
+    errorMessageWithIWS(...v) {
+        return this.errorMessage(...v) + "\n" + (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "";
+    }
+
+    /*
+     * Will throw a new Error, appending the parsed string line and position information to the the error message passed into the function.
+     * @instance
+     * @public
+     * @param {String} message - The error message.
+     * @param {Bool} DEFER - if true, returns an Error object instead of throwing.
+     */
+    throw (message, DEFER = false) {
+        const error = new Error(this.errorMessage(message));
+        if (DEFER)
+            return error;
+        throw error;
+    }
+
+    /*
+     * Proxy for Lexer.prototype.reset
+     * @public
+     */
+    r() { return this.reset() }
+
+
+    /*
      * Proxy for Lexer.prototype.assert
      * @public
      */
@@ -602,7 +606,7 @@ class Lexer {
         return this.assert(text);
     }
 
-    /**
+    /*
      * Compares the string value of the current token to the value passed in. Advances to next token if the two are equal.
      * @public
      * @throws {Error} - `Expecting "${text}" got "${this.text}"`
@@ -620,12 +624,12 @@ class Lexer {
         return this;
     }
 
-    /**
+    /*
      * Proxy for Lexer.prototype.assertCharacter
      * @public
      */
     aC(char) { return this.assertCharacter(char) }
-    /**
+    /*
      * Compares the character value of the current token to the value passed in. Advances to next token if the two are equal.
      * @public
      * @throws {Error} - `Expecting "${text}" got "${this.text}"`
@@ -643,7 +647,7 @@ class Lexer {
         return this;
     }
 
-    /**
+    /*
      * Returns the Lexer bound to Lexer.prototype.p, or creates and binds a new Lexer to Lexer.prototype.p. Advences the other Lexer to the token ahead of the calling Lexer.
      * @public
      * @type {Lexer}
@@ -671,13 +675,13 @@ class Lexer {
     }
 
 
-    /**
+    /*
      * Proxy for Lexer.prototype.slice
      * @public
      */
     s(start) { return this.slice(start) }
 
-    /**
+    /*
      * Returns a slice of the parsed string beginning at `start` and ending at the current token.
      * @param {Number | LexerBeta} start - The offset in this.str to begin the slice. If this value is a LexerBeta, sets the start point to the value of start.off.
      * @return {String} A substring of the parsed string.
@@ -690,7 +694,7 @@ class Lexer {
         return this.str.slice(start, (this.off <= start) ? this.sl : this.off);
     }
 
-    /**
+    /*
      * Skips to the end of a comment section.
      * @param {boolean} ASSERT - If set to true, will through an error if there is not a comment line or block to skip.
      * @param {Lexer} [marker=this] - If another Lexer is passed into this method, it will advance the token state of that Lexer.
@@ -726,7 +730,7 @@ class Lexer {
         return this.slice();
     }
 
-    /**
+    /*
      * Returns new Whind Lexer that has leading and trailing whitespace characters removed from input. 
      * leave_leading_amount - Maximum amount of leading space caracters to leave behind. Default is zero
      * leave_trailing_amount - Maximum amount of trailing space caracters to leave behind. Default is zero
@@ -777,14 +781,14 @@ class Lexer {
         if (leave_leading_amount > 0)
             lex.IWS = false;
 
-        lex.token_length = 0;
+        lex.tl = 0;
 
         lex.next();
 
         return lex;
     }
 
-    /** Adds symbol to symbol_map. This allows custom symbols to be defined and tokenized by parser. **/
+    /* Adds symbol to symbol_map. This allows custom symbols to be defined and tokenized by parser. **/
     addSymbol(sym) {
         
 
@@ -805,7 +809,7 @@ class Lexer {
         map.IS_SYM = true;
     }
 
-    /*** Getters and Setters ***/
+    /** Getters and Setters ***/
     get string() {
         return this.str;
     }
@@ -816,7 +820,7 @@ class Lexer {
 
     set string_length(s) {}
 
-    /**
+    /*
      * The current token in the form of a new Lexer with the current state.
      * Proxy property for Lexer.prototype.copy
      * @type {Lexer}
@@ -832,7 +836,7 @@ class Lexer {
         return this.str[this.off];
     }
 
-    /**
+    /*
      * Proxy for Lexer.prototype.text
      * @public
      * @type {String}
@@ -840,7 +844,7 @@ class Lexer {
      */
     get tx() { return this.text }
 
-    /**
+    /*
      * The string value of the current token.
      * @type {String}
      * @public
@@ -850,7 +854,7 @@ class Lexer {
         return (this.off < 0) ? "" : this.str.slice(this.off, this.off + this.tl);
     }
 
-    /**
+    /*
      * The type id of the current token.
      * @type {Number}
      * @public
@@ -858,7 +862,7 @@ class Lexer {
      */
     get ty() { return this.type }
 
-    /**
+    /*
      * The current token's offset position from the start of the string.
      * @type {Number}
      * @public
@@ -868,7 +872,7 @@ class Lexer {
         return this.off;
     }
 
-    /**
+    /*
      * Proxy for Lexer.prototype.peek
      * @public
      * @readonly
@@ -876,7 +880,7 @@ class Lexer {
      */
     get pk() { return this.peek() }
 
-    /**
+    /*
      * Proxy for Lexer.prototype.next
      * @public
      */
@@ -894,6 +898,7 @@ class Lexer {
             this.masked_values = (this.masked_values & ~TYPE_MASK) | ((getNumbrOfTrailingZeroBitsFromPowerOf2(value)) & TYPE_MASK);
         }
     */
+    /*
     get tl() {
         return this.token_length;
     }
@@ -909,6 +914,7 @@ class Lexer {
     set token_length(value) {
         this.masked_values = (this.masked_values & ~TOKEN_LENGTH_MASK) | (((value << 8) | 0) & TOKEN_LENGTH_MASK);
     }
+    */
 
     get IGNORE_WHITE_SPACE() {
         return this.IWS;
