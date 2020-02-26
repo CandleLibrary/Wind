@@ -77,6 +77,7 @@ const
 
     TYPE_MASK = 0xF,
     PARSE_STRING_MASK = 0x10,
+    USE_EXTENDED_NUMBER_TYPES_MASK = 0x2,
     IGNORE_WHITESPACE_MASK = 0x20,
     CHARACTERS_ONLY_MASK = 0x40,
     USE_EXTENDED_ID_MASK = 0x80,
@@ -148,10 +149,19 @@ class Lexer {
 
         this.USE_EXTENDED_ID = false;
 
+        this.USE_EXTENDED_NUMBER_TYPES = true;
+
         /**
          * Flag to force the lexer to parse string contents
          */
         this.PARSE_STRING = false;
+
+        Object.defineProperty(this, 'symbol_map', {
+            value:null,
+            enumerable:false,
+            writable:true,
+            configurable:true
+        });
 
         if (!PEEKING) this.next();
     }
@@ -426,7 +436,6 @@ class Lexer {
             let off2 = off;
             let map = this.symbol_map,
                 m;
-            let i = 0;
 
             while (code == 32 && IWS)
                 (code = str.charCodeAt(++off2), off++);
@@ -535,6 +544,9 @@ class Lexer {
                             //scientific 
                         }
                     }
+
+                    if(!this.USE_EXTENDED_NUMBER_TYPES)
+                        type = number;
 
                     length = off - base;
 
@@ -771,6 +783,8 @@ class Lexer {
 
     /** Adds symbol to symbol_map. This allows custom symbols to be defined and tokenized by parser. **/
     addSymbol(sym) {
+        
+
         if (!this.symbol_map)
             this.symbol_map = new Map;
 
@@ -931,6 +945,14 @@ class Lexer {
 
     set USE_EXTENDED_ID(boolean) {
         this.masked_values = (this.masked_values & ~USE_EXTENDED_ID_MASK) | ((boolean | 0) << 8);
+    }
+
+    get USE_EXTENDED_NUMBER_TYPES() {
+        return !!(this.masked_values & USE_EXTENDED_NUMBER_TYPES_MASK);
+    }
+
+    set USE_EXTENDED_NUMBER_TYPES(boolean) {
+        this.masked_values = (this.masked_values & ~USE_EXTENDED_NUMBER_TYPES_MASK) | ((boolean | 0) << 2);
     }
 
     /**
