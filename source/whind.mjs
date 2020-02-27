@@ -120,6 +120,7 @@ class Lexer {
             //  The length of the string being parsed. Can be adjusted to virtually shorten the screen. 
             sl: {
                 writable: true,
+                enumerable:true,
                 value: string.length
             },
             //  The string that the Lexer tokenizes.
@@ -127,7 +128,7 @@ class Lexer {
                 writable: false,
                 value: string
             }
-        })
+        });
 
         /*
          * The type id of the current token.
@@ -167,13 +168,6 @@ class Lexer {
          */
         this.PARSE_STRING = false;
 
-        Object.defineProperty(this, 'symbol_map', {
-            value:null,
-            enumerable:false,
-            writable:true,
-            configurable:true
-        });
-
         if (!PEEKING) this.next();
     }
 
@@ -211,6 +205,7 @@ class Lexer {
         destination.char = this.char;
         destination.line = this.line;
         destination.sl = this.sl;
+        destination.tl = this.tl;
         destination.type = this.type;
         destination.symbol_map = this.symbol_map;
         destination.masked_values = this.masked_values;
@@ -310,7 +305,7 @@ class Lexer {
 
             const code = str.codePointAt(off);
 
-            outer: switch (jump_table[code] & 255) {
+            switch (jump_table[code] & 255) {
                 case 0: //SYMBOL
                     type = symbol;
                     break;
@@ -499,7 +494,8 @@ class Lexer {
         // If current line is at index 0 then there will be no proceeeding line;
         // Likewise for the following line if current line is the last one in the string.
 
-        const line_start = this.off - this.char,
+        const 
+            line_start = this.off - this.char,
             char = this.char,
             l = this.line,
             str = this.str,
@@ -556,12 +552,12 @@ class Lexer {
 
             trunc = w_start !== 0 ? "... " : "",
 
-            line_number = n => ` ${(sp.repeat(3)+n).slice(-(l+1+"").length)}: `,
+            line_number = n => ` ${(sp.repeat(3)+(n+1)).slice(-(l+1+"").length)}: `,
 
             error_border = thick_line.repeat(curr_line_o.length + line_number.length + 8 + trunc.length);
 
         return [
-                `${message} at ${l}:${char - ((l > 0) ? 1 : 0)}`,
+                `${message} at ${l+1}:${char + 1 - ((l > 0) ? 1 : 0)}`,
                 `${error_border}`,
                 `${prev_line ?  line_number(l-1)+trunc+prev_line_o+(prev_line_o.length < prev_line.length ?  " ..." : "") : ""}`,
                 `${curr_line ?  line_number(l)+trunc+curr_line_o+(curr_line_o.length < curr_line.length ?  " ..." : "") : ""}`,
