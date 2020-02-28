@@ -6,7 +6,7 @@ import {
     hex,
     oct,
     bin
-} from "./tables";
+} from "./tables.js";
  
 enum TokenType {
     number = 1,
@@ -861,7 +861,7 @@ class Lexer {
 
     /**
      * The string value of the current token.
-     * @type {String}
+     * @type {string}
      * @public
      * @readonly
      */
@@ -1002,7 +1002,7 @@ Lexer.types = TokenType;
 
 whind.types = TokenType;
 
-import * as ascii from "./ascii_code_points";
+import * as ascii from "./ascii_code_points.js";
 
 export { Lexer, ascii, TokenType };
 

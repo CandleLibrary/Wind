@@ -208,7 +208,7 @@ declare class Lexer {
     get tx(): string;
     /**
      * The string value of the current token.
-     * @type {String}
+     * @type {string}
      * @public
      * @readonly
      */
@@ -293,6 +293,6 @@ declare namespace whind {
     var constructor: typeof Lexer;
     var types: typeof TokenType;
 }
-import * as ascii from "./ascii_code_points";
+import * as ascii from "./ascii_code_points.js";
 export { Lexer, ascii, TokenType };
 export default whind;

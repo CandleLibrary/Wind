@@ -1,4 +1,4 @@
-import { jump_table, id, num, hex, oct, bin } from "./tables";
+import { jump_table, id, num, hex, oct, bin } from "./tables.js";
 var TokenType;
 (function (TokenType) {
     TokenType[TokenType["number"] = 1] = "number";
@@ -682,7 +682,7 @@ class Lexer {
     get tx() { return this.text; }
     /**
      * The string value of the current token.
-     * @type {String}
+     * @type {string}
      * @public
      * @readonly
      */
@@ -799,6 +799,6 @@ function whind(string, INCLUDE_WHITE_SPACE_TOKENS = false) { return new Lexer(st
 whind.constructor = Lexer;
 Lexer.types = TokenType;
 whind.types = TokenType;
-import * as ascii from "./ascii_code_points";
+import * as ascii from "./ascii_code_points.js";
 export { Lexer, ascii, TokenType };
 export default whind;
