@@ -407,14 +407,14 @@ class Lexer {
     /**
      * Creates an error message with a diagram illustrating the location of the error.
      */
-    errorMessage(message = "", window_size = 40, tab_size = 4) {
+    errorMessage(message = "", window_size = 60, tab_size = 2) {
         // Get the text from the proceeding and the following lines; 
         // If current line is at index 0 then there will be no proceeeding line;
         // Likewise for the following line if current line is the last one in the string.
         const line_start = this.off - this.char, char = this.char, l = this.line, str = this.str, len = str.length, sp = " ";
         let prev_start = 0, next_start = 0, next_end = 0, i = 0;
         //get the start of the proceeding line
-        for (i = char; --i > 0 && jump_table[str.codePointAt(i)] !== 6;)
+        for (i = line_start; --i > 0 && jump_table[str.codePointAt(i)] !== 6;)
             ;
         prev_start = i;
         //get the end of the current line...
@@ -430,7 +430,7 @@ class Lexer {
             if (str.codePointAt(i) == HORIZONTAL_TAB)
                 pointer_pos += tab_size - 1;
         //find the location of the offending symbol
-        const prev_line = str.slice(prev_start + (prev_start > 0 ? 1 : 0), line_start).replace(/\t/g, sp.repeat(tab_size)), curr_line = str.slice(line_start + (line_start > 0 ? 1 : 0), next_start).replace(/\t/g, sp.repeat(tab_size)), next_line = str.slice(next_start + 1, next_end).replace(/\t/g, " "), 
+        const prev_line = str.slice(prev_start + (prev_start > 0 ? 1 : 0), line_start).replace(/\t/g, sp.repeat(tab_size)), curr_line = str.slice(line_start + (line_start > 0 ? 1 : 0), next_start).replace(/\t/g, sp.repeat(tab_size)), next_line = str.slice(next_start + (next_start > 0 ? 1 : 0), next_end).replace(/\t/g, " "), 
         //get the max line length;
         max_length = Math.max(prev_line.length, curr_line.length, next_line.length), min_length = Math.min(prev_line.length, curr_line.length, next_line.length), length_diff = max_length - min_length, 
         //Get the window size;
@@ -440,10 +440,10 @@ class Lexer {
         return [
             `${message} at ${l + 1}:${char + 1 - ((l > 0) ? 1 : 0)}`,
             `${error_border}`,
-            `${prev_line ? line_number(l - 1) + trunc + prev_line_o + (prev_line_o.length < prev_line.length ? " ..." : "") : ""}`,
-            `${curr_line ? line_number(l) + trunc + curr_line_o + (curr_line_o.length < curr_line.length ? " ..." : "") : ""}`,
+            `${l - 1 > -1 ? line_number(l - 1) + trunc + prev_line_o + (prev_line_o.length < prev_line.length ? " ..." : "") : ""}`,
+            `${true ? line_number(l) + trunc + curr_line_o + (curr_line_o.length < curr_line.length ? " ..." : "") : ""}`,
             `${line.repeat(w_pointer_pos + trunc.length + line_number(l + 1).length) + arrow}`,
-            `${next_line ? line_number(l + 1) + trunc + next_line_o + (next_line_o.length < next_line.length ? " ..." : "") : ""}`,
+            `${next_start < str.length ? line_number(l + 1) + trunc + next_line_o + (next_line_o.length < next_line.length ? " ..." : "") : ""}`,
             `${error_border}`
         ]
             .filter(e => !!e)
