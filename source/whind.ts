@@ -7,7 +7,7 @@ import {
     oct,
     bin
 } from "./tables.js";
- 
+
 enum TokenType {
     number = 1,
     num = number,
@@ -28,27 +28,27 @@ enum TokenType {
     number_flt = number | 32768,
     alpha_numeric = (identifier | number),
     white_space_new_line = (white_space | new_line),
-    id= identifier,
-    str= string,
-    ws= white_space,
-    ob= open_bracket,
-    cb= close_bracket,
-    op= operator,
-    sym= symbol,
-    nl= new_line,
-    dl= data_link,
-    int= number_int,
-    integer= number_int,
-    bin= number_bin,
-    binary= number_bin,
-    oct= number_oct,
-    octal= number_oct,
-    hex= number_hex,
-    hexadecimal= number_hex,
-    flt= number_flt,
-    float= number_flt,
-    sci= number_sci,
-    scientific= number_sci,
+    id = identifier,
+    str = string,
+    ws = white_space,
+    ob = open_bracket,
+    cb = close_bracket,
+    op = operator,
+    sym = symbol,
+    nl = new_line,
+    dl = data_link,
+    int = number_int,
+    integer = number_int,
+    bin = number_bin,
+    binary = number_bin,
+    oct = number_oct,
+    octal = number_oct,
+    hex = number_hex,
+    hexadecimal = number_hex,
+    flt = number_flt,
+    float = number_flt,
+    sci = number_sci,
+    scientific = number_sci,
 }
 
 enum Masks {
@@ -61,12 +61,12 @@ enum Masks {
     TOKEN_LENGTH_MASK = 0xFFFFFF00,
 }
 
-    //De Bruijn Sequence for finding index of right most bit set.
-    //http://supertech.csail.mit.edu/papers/debruijn.pdf
- const   debruijnLUT = [
-        0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
-        31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
-    ],
+//De Bruijn Sequence for finding index of right most bit set.
+//http://supertech.csail.mit.edu/papers/debruijn.pdf
+const debruijnLUT = [
+    0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
+    31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
+],
     getNumbrOfTrailingZeroBitsFromPowerOf2 = (value) => debruijnLUT[(value * 0x077CB531) >>> 27],
     arrow = String.fromCharCode(0x2b89),
     line = String.fromCharCode(0x2500),
@@ -76,15 +76,15 @@ enum Masks {
     extended_jump_table = jump_table.slice();
 
 extended_jump_table[45] |= 2 << 8;
-extended_jump_table[95] |= 2 << 8;  
+extended_jump_table[95] |= 2 << 8;
 
-type SymbolMap = Map<number, number | SymbolMap> & {IS_SYM: boolean};
+type SymbolMap = Map<number, number | SymbolMap> & { IS_SYM: boolean; };
 
 /**
  * Partially configurable token producing lexer. 
  */
 class Lexer {
-    
+
     char: number;
     tk: number;
     type: TokenType;
@@ -92,17 +92,17 @@ class Lexer {
     line: number;
     tl: number;
     sl: number;
-    masked_values:number;
+    masked_values: number;
     str: string;
     p: Lexer;
-    symbol_map:SymbolMap;
+    symbol_map: SymbolMap;
 
     //Exists on prototype
-    id_lu : Uint16Array;
-    addCharacter : any;
+    id_lu: Uint16Array;
+    addCharacter: any;
 
-    static types : typeof TokenType;
-    
+    static types: typeof TokenType;
+
     /**
      * 
      * @param string 
@@ -187,7 +187,7 @@ class Lexer {
      * Restore the Lexer back to it's initial state.
      * @public
      */
-    reset() : Lexer{
+    reset(): Lexer {
         this.p = null;
         this.type = 32768;
         this.off = 0;
@@ -198,7 +198,7 @@ class Lexer {
         return this;
     }
 
-    resetHead() :void {
+    resetHead(): void {
         this.off = 0;
         this.tl = 0;
         this.char = 0;
@@ -211,7 +211,7 @@ class Lexer {
      * Copies the data to a new Lexer object.
      * @return {Lexer}  Returns a new Lexer instance with the same property values.
      */
-    copy(destination : Lexer = new Lexer(this.str, false, true)) : Lexer {
+    copy(destination: Lexer = new Lexer(this.str, false, true)): Lexer {
         destination.off = this.off;
         destination.char = this.char;
         destination.line = this.line;
@@ -229,7 +229,7 @@ class Lexer {
      * @throws     {Error} Throws an error if the Lexers reference different strings.
      * @public
      */
-    sync(marker : Lexer = this.p): Lexer {
+    sync(marker: Lexer = this.p): Lexer {
 
         if (marker instanceof Lexer) {
             if (marker.str !== this.str) throw new Error("Cannot sync Lexers with different strings!");
@@ -369,7 +369,7 @@ class Lexer {
                             // be within the range of the respective lu type : hex, oct, or bin
                             if ((lu & (jump_table[str.codePointAt(off + 1)] >> 8))) {
                                 while (++off < l && (lu & (jump_table[str.codePointAt(off)] >> 8)));
-                                type = ty
+                                type = ty;
                             }
                             //return just the 0
                         }
@@ -463,7 +463,7 @@ class Lexer {
     /**
         Looks for the string within the text and returns a new lexer at the location of the first occurance of the token or 
     */
-    find(string : string) : Lexer {
+    find(string: string): Lexer {
         const cp = this.pk,
             match = this.copy();
 
@@ -500,7 +500,7 @@ class Lexer {
     /**
      * Creates an error message with a diagram illustrating the location of the error. 
      */
-    errorMessage(message :string = "", window_size :number = 40, tab_size:number = 4) :string {
+    errorMessage(message: string = "", window_size: number = 60, tab_size: number = 2): string {
 
         // Get the text from the proceeding and the following lines; 
         // If current line is at index 0 then there will be no proceeeding line;
@@ -520,12 +520,13 @@ class Lexer {
             i = 0;
 
         //get the start of the proceeding line
-        for (i = char; --i > 0 && jump_table[str.codePointAt(i)] !== 6;);
+        for (i = line_start; --i > 0 && jump_table[str.codePointAt(i)] !== 6;);
         prev_start = i;
 
         //get the end of the current line...
         for (i = this.off + this.tl; i++ < len && jump_table[str.codePointAt(i)] !== 6;);
         next_start = i;
+
 
         //and the next line
         for (; i++ < len && jump_table[str.codePointAt(i)] !== 6;);
@@ -541,7 +542,7 @@ class Lexer {
         const
             prev_line = str.slice(prev_start + (prev_start > 0 ? 1 : 0), line_start).replace(/\t/g, sp.repeat(tab_size)),
             curr_line = str.slice(line_start + (line_start > 0 ? 1 : 0), next_start).replace(/\t/g, sp.repeat(tab_size)),
-            next_line = str.slice(next_start + 1, next_end).replace(/\t/g, " "),
+            next_line = str.slice(next_start + (next_start > 0 ? 1 : 0), next_end).replace(/\t/g, " "),
 
             //get the max line length;
 
@@ -571,17 +572,17 @@ class Lexer {
         return [
             `${message} at ${l + 1}:${char + 1 - ((l > 0) ? 1 : 0)}`,
             `${error_border}`,
-            `${prev_line ? line_number(l - 1) + trunc + prev_line_o + (prev_line_o.length < prev_line.length ? " ..." : "") : ""}`,
-            `${curr_line ? line_number(l) + trunc + curr_line_o + (curr_line_o.length < curr_line.length ? " ..." : "") : ""}`,
+            `${l - 1 > -1 ? line_number(l - 1) + trunc + prev_line_o + (prev_line_o.length < prev_line.length ? " ..." : "") : ""}`,
+            `${true ? line_number(l) + trunc + curr_line_o + (curr_line_o.length < curr_line.length ? " ..." : "") : ""}`,
             `${line.repeat(w_pointer_pos + trunc.length + line_number(l + 1).length) + arrow}`,
-            `${next_line ? line_number(l + 1) + trunc + next_line_o + (next_line_o.length < next_line.length ? " ..." : "") : ""}`,
+            `${next_start < str.length ? line_number(l + 1) + trunc + next_line_o + (next_line_o.length < next_line.length ? " ..." : "") : ""}`,
             `${error_border}`
         ]
             .filter(e => !!e)
             .join("\n");
     }
 
-    errorMessageWithIWS(...v: string[]) :string {
+    errorMessageWithIWS(...v: string[]): string {
         return this.errorMessage(...v) + "\n" + (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "";
     }
 
@@ -591,7 +592,7 @@ class Lexer {
      * @public
      * @param {String} message - The error message.
      */
-    throw(message: string) : never {
+    throw(message: string): never {
         throw new Error(this.errorMessage(message));;
     }
 
@@ -599,7 +600,7 @@ class Lexer {
      * Proxy for Lexer.prototype.reset
      * @public
      */
-    r() { return this.reset() }
+    r() { return this.reset(); }
 
 
     /**
@@ -616,10 +617,10 @@ class Lexer {
      * @throws {Error} - `Expecting "${text}" got "${this.text}"`
      * @param {String} text - The string to compare.
      */
-    assert(text :string) :Lexer {
+    assert(text: string): Lexer {
 
         if (this.off < 0 || this.END) this.throw(`Expecting [${text}] but encountered end of string.`);
-        
+
         if (this.text == text)
             this.next();
         else
@@ -632,21 +633,21 @@ class Lexer {
      * Proxy for Lexer.prototype.assertCharacter
      * @public
      */
-    aC(char: string) { return this.assertCharacter(char) }
+    aC(char: string) { return this.assertCharacter(char); }
     /**
      * Compares the character value of the current token to the value passed in. Advances to next token if the two are equal.
      * @public
      * @throws {Error} - `Expecting "${text}" got "${this.text}"`
      * @param {String} text - The string to compare.
      */
-    assertCharacter(char : string) : Lexer {
+    assertCharacter(char: string): Lexer {
 
         if (this.off < 0 || this.END) this.throw(`Expecting [${char[0]}] but encountered end of string.`);
 
         if (this.ch == char[0])
             this.next();
         else
-        this.throw(`Expecting [${char[0]}] but encountered [${this.ch}]`);
+            this.throw(`Expecting [${char[0]}] but encountered [${this.ch}]`);
 
         return this;
     }
@@ -659,7 +660,7 @@ class Lexer {
      * @param {Lexer} [peeking_marker=this.p] - The Lexer to set to the next token state.
      * @return {Lexer} - The Lexer that contains the peeked at token.
      */
-    peek(marker : Lexer = this, peeking_marker :Lexer = this.p):Lexer {
+    peek(marker: Lexer = this, peeking_marker: Lexer = this.p): Lexer {
 
         if (!peeking_marker) {
             if (!marker) return null;
@@ -683,7 +684,7 @@ class Lexer {
      * Proxy for Lexer.prototype.slice
      * @public
      */
-    s(start: number | Lexer) { return this.slice(start) }
+    s(start: number | Lexer) { return this.slice(start); }
 
     /**
      * Returns a slice of the parsed string beginning at `start` and ending at the current token.
@@ -691,7 +692,7 @@ class Lexer {
      * @return {String} A substring of the parsed string.
      * @public
      */
-    slice(start : number | Lexer = this.off) :string {
+    slice(start: number | Lexer = this.off): string {
 
         if (start instanceof Lexer) start = start.off;
 
@@ -703,17 +704,17 @@ class Lexer {
      * @param {boolean} ASSERT - If set to true, will through an error if there is not a comment line or block to skip.
      * @param {Lexer} [marker=this] - If another Lexer is passed into this method, it will advance the token state of that Lexer.
      */
-    comment(ASSERT :boolean = false, marker : Lexer = this) {
+    comment(ASSERT: boolean = false, marker: Lexer = this) {
 
         if (!(marker instanceof Lexer)) return marker;
 
         if (marker.ch == "/") {
             if (marker.pk.ch == "*") {
                 marker.sync();
-                
+
                 //@ts-ignore
                 while (!marker.END && (marker.next().ch !== "*" || marker.pk.ch !== "/")) { /** NO OP */ }
-                
+
                 marker.sync().assert("/");
             } else if (marker.pk.ch == "/") {
                 const IWS = marker.IWS;
@@ -732,7 +733,7 @@ class Lexer {
      * @param string - New string to replace the existing one with.
      * @param RESET - Flag that if set true will reset the Lexers position to the start of the string
      */
-    setString(string :string, RESET = true) : void {
+    setString(string: string, RESET = true): void {
         this.str = string;
         this.sl = string.length;
         if (RESET) this.resetHead();
@@ -747,7 +748,7 @@ class Lexer {
      * @param leave_leading_amount - Maximum amount of leading space caracters to leave behind. Default is zero
      * @param leave_trailing_amount - Maximum amount of trailing space caracters to leave behind. Default is zero
      */
-    trim(leave_leading_amount:number = 0, leave_trailing_amount:number = leave_leading_amount) {
+    trim(leave_leading_amount: number = 0, leave_trailing_amount: number = leave_leading_amount) {
         const lex = this.copy();
 
         let space_count = 0,
@@ -803,24 +804,24 @@ class Lexer {
     /** 
      * Adds symbol to symbol_map. This allows custom symbols to be defined and tokenized by parser. 
     */
-    addSymbol(sym:string) :void {
+    addSymbol(sym: string): void {
 
 
         if (!this.symbol_map)
-            this.symbol_map = <SymbolMap> new Map;
+            this.symbol_map = <SymbolMap>new Map;
 
 
         let map = this.symbol_map;
 
         for (let i = 0; i < sym.length; i++) {
-            let code : number = sym.charCodeAt(i);
+            let code: number = sym.charCodeAt(i);
             let m = map.get(code);
             if (!m) {
-                m = map.set(code, <SymbolMap> new Map).get(code);
+                m = map.set(code, <SymbolMap>new Map).get(code);
             }
-            map = <SymbolMap> m;
+            map = <SymbolMap>m;
         }
-        
+
         map.IS_SYM = true;
     }
 
@@ -842,12 +843,12 @@ class Lexer {
      * @public
      * @readonly
      */
-    get token() : Lexer {
+    get token(): Lexer {
         return this.copy();
     }
 
 
-    get ch() : string {
+    get ch(): string {
         return this.str[this.off];
     }
 
@@ -857,7 +858,7 @@ class Lexer {
      * @type {String}
      * @readonly
      */
-    get tx() : string { return this.text }
+    get tx(): string { return this.text; }
 
     /**
      * The string value of the current token.
@@ -865,7 +866,7 @@ class Lexer {
      * @public
      * @readonly
      */
-    get text() : string {
+    get text(): string {
         return (this.off < 0) ? "" : this.str.slice(this.off, this.off + this.tl);
     }
 
@@ -875,7 +876,7 @@ class Lexer {
      * @public
      * @readonly
      */
-    get ty() : TokenType { return this.type };
+    get ty(): TokenType { return this.type; };
 
     /**
      * The current token's offset position from the start of the string.
@@ -893,18 +894,18 @@ class Lexer {
      * @readonly
      * @type {Lexer}
      */
-    get pk() { return this.peek() }
+    get pk() { return this.peek(); }
 
     /**
      * Proxy for Lexer.prototype.next
      * @public
      */
-    get n() { return this.next() }
+    get n() { return this.next(); }
 
     /**
      * Boolean value set to true if position of Lexer is at the end of the string.
      */
-    get END() { return this.off >= this.sl }
+    get END() { return this.off >= this.sl; }
 
     set END(v) { }
     /**
@@ -935,7 +936,7 @@ class Lexer {
     }
     */
 
-    get IGNORE_WHITE_SPACE() : boolean {
+    get IGNORE_WHITE_SPACE(): boolean {
         return this.IWS;
     }
 
@@ -943,7 +944,7 @@ class Lexer {
         this.IWS = !!bool;
     }
 
-    get CHARACTERS_ONLY()  : boolean{
+    get CHARACTERS_ONLY(): boolean {
         return !!(this.masked_values & Masks.CHARACTERS_ONLY_MASK);
     }
 
@@ -951,7 +952,7 @@ class Lexer {
         this.masked_values = (this.masked_values & ~Masks.CHARACTERS_ONLY_MASK) | ((+boolean | 0) << 6);
     }
 
-    get IWS()  : boolean{
+    get IWS(): boolean {
         return !!(this.masked_values & Masks.IGNORE_WHITESPACE_MASK);
     }
 
@@ -959,7 +960,7 @@ class Lexer {
         this.masked_values = (this.masked_values & ~Masks.IGNORE_WHITESPACE_MASK) | ((+boolean | 0) << 5);
     }
 
-    get PARSE_STRING()  : boolean{
+    get PARSE_STRING(): boolean {
         return !!(this.masked_values & Masks.PARSE_STRING_MASK);
     }
 
@@ -967,7 +968,7 @@ class Lexer {
         this.masked_values = (this.masked_values & ~Masks.PARSE_STRING_MASK) | ((+boolean | 0) << 4);
     }
 
-    get USE_EXTENDED_ID()  : boolean{
+    get USE_EXTENDED_ID(): boolean {
         return !!(this.masked_values & Masks.USE_EXTENDED_ID_MASK);
     }
 
@@ -975,18 +976,18 @@ class Lexer {
         this.masked_values = (this.masked_values & ~Masks.USE_EXTENDED_ID_MASK) | ((+boolean | 0) << 8);
     }
 
-    get USE_EXTENDED_NUMBER_TYPES()  : boolean{
+    get USE_EXTENDED_NUMBER_TYPES(): boolean {
         return !!(this.masked_values & Masks.USE_EXTENDED_NUMBER_TYPES_MASK);
     }
 
-    set USE_EXTENDED_NUMBER_TYPES(boolean:boolean) {
+    set USE_EXTENDED_NUMBER_TYPES(boolean: boolean) {
         this.masked_values = (this.masked_values & ~Masks.USE_EXTENDED_NUMBER_TYPES_MASK) | ((+boolean | 0) << 2);
     }
 
     /**
      * Reference to token id types.
      */
-    get types() : typeof TokenType {
+    get types(): typeof TokenType {
         return TokenType;
     }
 }
@@ -994,7 +995,7 @@ class Lexer {
 Lexer.prototype.id_lu = jump_table;
 Lexer.prototype.addCharacter = Lexer.prototype.addSymbol;
 
-function whind(string :string, INCLUDE_WHITE_SPACE_TOKENS = false) : Lexer { return new Lexer(string, INCLUDE_WHITE_SPACE_TOKENS) }
+function whind(string: string, INCLUDE_WHITE_SPACE_TOKENS = false): Lexer { return new Lexer(string, INCLUDE_WHITE_SPACE_TOKENS); }
 
 whind.constructor = Lexer;
 
