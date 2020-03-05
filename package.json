@@ -28,7 +28,6 @@
   "author": "Anthony Weathersby",
   "license": "MIT",
   "devDependencies": {
-    "@candlefw/url": "^0.0.11",
     "chai": "^4.2.0",
     "esm": "^3.0.84",
     "mocha": "^7.0.1",
