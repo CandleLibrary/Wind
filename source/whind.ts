@@ -500,7 +500,7 @@ class Lexer {
     /**
      * Creates an error message with a diagram illustrating the location of the error. 
      */
-    errorMessage(message: string = "", window_size: number = 60, tab_size: number = 2): string {
+    errorMessage(message: string = "", file: string = "", window_size: number = 120, tab_size: number = 2): string {
 
         // Get the text from the proceeding and the following lines; 
         // If current line is at index 0 then there will be no proceeeding line;
@@ -570,7 +570,7 @@ class Lexer {
             error_border = thick_line.repeat(curr_line_o.length + line_number.length + 8 + trunc.length);
 
         return [
-            `${message} at ${l + 1}:${char + 1 - ((l > 0) ? 1 : 0)}`,
+            `${message} at ${file ? file + ":" : ""}${l + 1}:${char + 1 - ((l > 0) ? 1 : 0)}`,
             `${error_border}`,
             `${l - 1 > -1 ? line_number(l - 1) + trunc + prev_line_o + (prev_line_o.length < prev_line.length ? " ..." : "") : ""}`,
             `${true ? line_number(l) + trunc + curr_line_o + (curr_line_o.length < curr_line.length ? " ..." : "") : ""}`,
