@@ -14,7 +14,7 @@
     "build": "rollup --config ./build/config/config.js",
     "build.table": "node ./source/build_unicode_tables.node.js",
     "build.watch": "rollup --config ./build/config/config.js --watch",
-    "prepare": "npm run build"
+    "prepublish": "tsc -p ./tsconfig.json"
   },
   "repository": {
     "type": "git",
