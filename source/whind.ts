@@ -63,7 +63,7 @@ enum Masks {
 
 //De Bruijn Sequence for finding index of right most bit set.
 //http://supertech.csail.mit.edu/papers/debruijn.pdf
-const debruijnLUT = [
+export const debruijnLUT = [
     0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
     31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
 ],
@@ -102,7 +102,6 @@ class Lexer {
     addCharacter: any;
 
     static types: typeof TokenType;
-
     /**
      * 
      * @param string 
@@ -205,7 +204,7 @@ class Lexer {
         this.line = 0;
         this.p = null;
         this.type = 32768;
-    }
+    };
 
     /**
      * Copies the data to a new Lexer object.
@@ -501,7 +500,7 @@ class Lexer {
      * Creates an error message with a diagram illustrating the location of the error. 
      */
     errorMessage(message: string = "", file: string = "", window_size: number = 120, tab_size: number = 2): string {
-
+        window_size = 500;
         // Get the text from the proceeding and the following lines; 
         // If current line is at index 0 then there will be no proceeeding line;
         // Likewise for the following line if current line is the last one in the string.
@@ -552,8 +551,8 @@ class Lexer {
 
             //Get the window size;
             w_size = window_size,
-            w_start = Math.max(0, Math.min(pointer_pos - w_size / 2, max_length)),
-            w_end = Math.max(0, Math.min(pointer_pos + w_size / 2, max_length)),
+            w_start = Math.max(0, Math.min(pointer_pos - w_size / 0.75, max_length)),
+            w_end = Math.max(0, Math.min(pointer_pos + w_size / 0.25, max_length)),
             w_pointer_pos = Math.max(0, Math.min(pointer_pos, max_length)) - w_start,
 
 
@@ -594,7 +593,7 @@ class Lexer {
      */
     throw(message: string): never {
         throw new Error(this.errorMessage(message));;
-    }
+    };
 
     /**
      * Proxy for Lexer.prototype.reset
@@ -737,7 +736,7 @@ class Lexer {
         this.str = string;
         this.sl = string.length;
         if (RESET) this.resetHead();
-    }
+    };
 
     toString() {
         return this.slice();
@@ -908,33 +907,6 @@ class Lexer {
     get END() { return this.off >= this.sl; }
 
     set END(v) { }
-    /**
-        get type() {
-            return 1 << (this.masked_values & TYPE_MASK);
-        }
-
-        set type(value) {
-            //assuming power of 2 value.
-            this.masked_values = (this.masked_values & ~TYPE_MASK) | ((getNumbrOfTrailingZeroBitsFromPowerOf2(value)) & TYPE_MASK);
-        }
-    */
-    /**
-    get tl() {
-        return this.token_length;
-    }
-
-    set tl(valmjsue) {
-        this.token_length = value;
-    }
-
-    get token_length() {
-        return ((this.masked_values & TOKEN_LENGTH_MASK) >> 8);
-    }
-
-    set token_length(value) {
-        this.masked_values = (this.masked_values & ~TOKEN_LENGTH_MASK) | (((value << 8) | 0) & TOKEN_LENGTH_MASK);
-    }
-    */
 
     get IGNORE_WHITE_SPACE(): boolean {
         return this.IWS;
