@@ -466,12 +466,12 @@ class Lexer {
         Looks for the string within the text and returns a new lexer at the location of the first occurance of the token or 
     */
     find(string: string): Lexer {
+
         const cp = this.pk,
-            match = this.copy();
+            match = new Lexer(string);
 
         match.resetHead();
-        match.str = string;
-        match.sl = string.length;
+
         cp.tl = 0;
         const char_cache = cp.CHARACTERS_ONLY;
         match.CHARACTERS_ONLY = true;
