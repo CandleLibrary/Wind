@@ -81,17 +81,20 @@ extended_jump_table[95] |= 2 << 8;
 type SymbolMap = Map<number, number | SymbolMap> & { IS_SYM: boolean; };
 
 /**
- * Partially configurable token producing lexer. 
+ * Token Producing Lexer. 
  */
 class Lexer {
 
-    char: number;
+    line: number;
+    column: number;
+
     tk: number;
     type: TokenType;
+
     off: number;
-    line: number;
     tl: number;
     sl: number;
+
     masked_values: number;
     str: string;
     p: Lexer;
@@ -153,7 +156,7 @@ class Lexer {
         /**
          * The character offset of the current token within a line.
          */
-        this.char = 0;
+        this.column = 0;
         /**
          * The line position of the current token.
          */
@@ -191,7 +194,7 @@ class Lexer {
         this.type = 32768;
         this.off = 0;
         this.tl = 0;
-        this.char = 0;
+        this.column = 0;
         this.line = 0;
         this.n;
         return this;
@@ -200,7 +203,7 @@ class Lexer {
     resetHead(): void {
         this.off = 0;
         this.tl = 0;
-        this.char = 0;
+        this.column = 0;
         this.line = 0;
         this.p = null;
         this.type = 32768;
@@ -212,7 +215,7 @@ class Lexer {
      */
     copy(destination: Lexer = new Lexer(this.str, false, true)): Lexer {
         destination.off = this.off;
-        destination.char = this.char;
+        destination.column = this.column;
         destination.line = this.line;
         destination.sl = this.sl;
         destination.tl = this.tl;
@@ -233,7 +236,7 @@ class Lexer {
         if (marker instanceof Lexer) {
             if (marker.str !== this.str) throw new Error("Cannot sync Lexers with different strings!");
             this.off = marker.off;
-            this.char = marker.char;
+            this.column = marker.column;
             this.line = marker.line;
             this.masked_values = marker.masked_values;
         }
@@ -253,7 +256,7 @@ class Lexer {
             marker.type = 32768;
             marker.tl = 0;
             marker.line = 0;
-            marker.char = 0;
+            marker.column = 0;
             return marker;
         }
 
@@ -268,14 +271,14 @@ class Lexer {
             type = TokenType.symbol,
             line = marker.line,
             base = off,
-            char = marker.char,
+            char = marker.column,
             root = marker.off;
 
         if (off >= l) {
             length = 0;
             base = l;
             //char -= base - off;
-            marker.char = char + (base - marker.off);
+            marker.column = char + (base - marker.off);
             marker.type = type;
             marker.off = base;
             marker.tl = 0;
@@ -442,7 +445,7 @@ class Lexer {
         marker.type = type;
         marker.off = base;
         marker.tl = (this.masked_values & Masks.CHARACTERS_ONLY_MASK) ? Math.min(1, length) : length;
-        marker.char = char + base - root;
+        marker.column = char + base - root;
         marker.line = line;
 
         return marker;
@@ -506,8 +509,8 @@ class Lexer {
         // Likewise for the following line if current line is the last one in the string.
 
         const
-            line_start = this.off - this.char,
-            char = this.char,
+            line_start = this.off - this.column,
+            char = this.column,
             l = this.line,
             str = this.str,
             len = str.length,
@@ -672,7 +675,7 @@ class Lexer {
         peeking_marker.type = marker.type;
         peeking_marker.off = marker.off;
         peeking_marker.tl = marker.tl;
-        peeking_marker.char = marker.char;
+        peeking_marker.column = marker.column;
         peeking_marker.line = marker.line;
         this.next(peeking_marker);
         return peeking_marker;
@@ -798,6 +801,13 @@ class Lexer {
         lex.next();
 
         return lex;
+    }
+
+    /**
+     * Alias for lexer.column
+     */
+    get char() {
+        return this.column
     }
 
     /** 
