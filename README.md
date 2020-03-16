@@ -1,6 +1,10 @@
-# CandleFW **Whind**
+<h1 align=center>
+    <img src="./flavor/cfw-flame-w-lib.svg" type="text/svg" rel="svg" height=80>
+</h1>
 
-Whind is a simple and lightweight lexer/tokenizer. It uses lookup tables to quickly identify lexical tokens. Tokens are represented by the Whind Lexer itself.
+
+
+<h3 align=center>Lightweight Lexer and Tokenizer</h3>
 
 
 ## Install
