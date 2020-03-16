@@ -5,6 +5,8 @@
 <h3 align=center>Lightweight Lexer and Tokenizer</h3>
 
 <p align=center> <sub><b>v0.4.0</b></sub> </p>
+ 
+ \ ˈwīnd  \ - to raise to a high level [as of excitement or tension]
 
 #
 
@@ -13,7 +15,7 @@
 ### NPM
 
 ```bash
-npm install --save @candlefw/whind
+npm install --save @candlefw/wind
 ```
 ## Usage
 
@@ -23,11 +25,11 @@ npm install --save @candlefw/whind
 
 
 ```javascript
-import whind from "@candlefw/whind"
+import wind from "@candlefw/wind"
 
 const sample_string = "The 2345 a 0x3456 + 'a string'";
 
-let lexer = whind(sample_string);
+let lexer = wind(sample_string);
 
 //Example
 
@@ -40,9 +42,9 @@ lexer.ty == lexer.types.number  //=> true
 ```
 
 ---
-# Whind **Lexer**
+# Wind **Lexer**
 
-`import { Lexer } from "@candlefw/whind"`
+`import { Lexer } from "@candlefw/wind"`
 
 ## Constructor
 
@@ -51,9 +53,9 @@ lexer.ty == lexer.types.number  //=> true
 - `string` - The input string to parse.
 - `INCLUDE_WHITE_SPACE_TOKENS` - Flag to include white space tokens such as `TABS` and `NEW_LINE`.
 
->**note**: the default export `whind` has the same form as the Lexer constructor function  and is called without the **new** keyword.
+>**note**: the default export `wind` has the same form as the Lexer constructor function  and is called without the **new** keyword.
 >
-> let lexer = ***whind*** ( __string__ [ , __INCLUDE_WHITE_SPACE_TOKENS__ )
+> let lexer = ***wind*** ( __string__ [ , __INCLUDE_WHITE_SPACE_TOKENS__ )
 
 ## Properties
 
@@ -69,7 +71,7 @@ lexer.ty == lexer.types.number  //=> true
 
 - __off__ - *Number* <br>&ensp;  The absolute index position of the current token measured from the beginning of the input string.
 
-- __p__ - *Whind Lexer* <br>&ensp;  A pointer cache to a peeking Lexer.
+- __p__ - *Wind Lexer* <br>&ensp;  A pointer cache to a peeking Lexer.
 
 - __PARSE_STRING__ - *Boolean* <br>&ensp;  If set to **true** then string tokens will not be generated and instead the contents of string will be individually tokenized.
 
@@ -121,18 +123,18 @@ lexer.ty == lexer.types.number  //=> true
     - *Returns Lexer to allow method chaining.*   
 
 
-- *Lexer* - ___copy___ ( [ **destination** ]) <br>&ensp;  Copies the value of the lexer to `destination`. `destination` defaults to a new Whind Lexer.
+- *Lexer* - ___copy___ ( [ **destination** ]) <br>&ensp;  Copies the value of the lexer to `destination`. `destination` defaults to a new Wind Lexer.
 
 
-- *Lexer* - ___fence___ ( [ **marker** ] ) - Reduces the input string's parse length by the value of `marker.off`. The value of the `marker` *must* be a Whind Lexer that has the same input string as the callee Whind Lexer.
+- *Lexer* - ___fence___ ( [ **marker** ] ) - Reduces the input string's parse length by the value of `marker.off`. The value of the `marker` *must* be a Wind Lexer that has the same input string as the callee Wind Lexer.
     - *Returns Lexer to allow method chaining.*
 
 
-- *Lexer* - ___next___ ( [ **marker** ] ) <br>&ensp;  Advances the `marker` to the next token in its input string. Returns `marker` or **null** if the end of the input string has been reached.  `marker` defaults to the calling Whind Lexer object, which means **this** will be returned if no value is passed as `marker`.
+- *Lexer* - ___next___ ( [ **marker** ] ) <br>&ensp;  Advances the `marker` to the next token in its input string. Returns `marker` or **null** if the end of the input string has been reached.  `marker` defaults to the calling Wind Lexer object, which means **this** will be returned if no value is passed as `marker`.
     - *Returns Lexer to allow method chaining.*
 
 
-- *Lexer* - ___peek___ ( [ **marker** [ , **peek_marker** ] ] ) <br>&ensp;  Returns another Whind Lexer that is advanced one token ahead of `marker`. `marker` defaults to **this** and `peek_marker` defaults to `p`. A new Whind Lexer is created if no value is passed as `peek_marker` and `marker.p` is **null**.
+- *Lexer* - ___peek___ ( [ **marker** [ , **peek_marker** ] ] ) <br>&ensp;  Returns another Wind Lexer that is advanced one token ahead of `marker`. `marker` defaults to **this** and `peek_marker` defaults to `p`. A new Wind Lexer is created if no value is passed as `peek_marker` and `marker.p` is **null**.
 
 
 - *Lexer* - ___reset___ ( ) <br>&ensp;  Resets lexer completely. After this is called, the lexer will need to be set with a new input string to allow it to begin parsing again.
@@ -150,7 +152,7 @@ lexer.ty == lexer.types.number  //=> true
 - *String* - ___slice___ ( [ **start** ] ) <br>&ensp;  Returns a substring of the input string that starts at `start` and ends at the value of `off`. If `start` is **undefined** then the substring starts at `off` and ends at `sl`.
 
 
-- *Lexer* - ___sync___ ( [ **marker** ] ) <br>&ensp;  Copies the current values of the `marker` object to the Whind Lexer. `marker` defaults to the value of `p`.
+- *Lexer* - ___sync___ ( [ **marker** ] ) <br>&ensp;  Copies the current values of the `marker` object to the Wind Lexer. `marker` defaults to the value of `p`.
     - *Returns Lexer to allow method chaining.*
 
 
@@ -172,7 +174,7 @@ lexer.ty == lexer.types.number  //=> true
 
 ## Types
 
- There are 10 types of tokens that the Whind Lexer will create. Type identifiers can be accessed through ***whind.types***, ***Lexer.types***, and the `types` property in Lexer instances. Each type is identified with a power of 2 value to allow nested comparisons:
+ There are 10 types of tokens that the Wind Lexer will create. Type identifiers can be accessed through ***wind.types***, ***Lexer.types***, and the `types` property in Lexer instances. Each type is identified with a power of 2 value to allow nested comparisons:
  ```js
  (lexer.type & (lexer.types.identifier | lexer.types.symbol)) ? true : false;  
  ```

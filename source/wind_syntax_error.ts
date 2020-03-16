@@ -1,11 +1,11 @@
 import { jump_table } from "./tables.js";
-import { HORIZONTAL_TAB, thick_line, line, arrow, Lexer } from "./whind.js";
+import { HORIZONTAL_TAB, thick_line, line, arrow, Lexer } from "./wind.js";
 /**
- * Error Object produced by whind.errorMessage
+ * Error Object produced by wind.errorMessage
  */
-export class WhindSyntaxError extends SyntaxError {
+export class WindSyntaxError extends SyntaxError {
 
-    whind_error_message: string;
+    wind_error_message: string;
 
     /**
      * Source file 
@@ -97,7 +97,7 @@ export class WhindSyntaxError extends SyntaxError {
 
             error_border = thick_line.repeat(curr_line_o.length + line_number.length + 8 + trunc.length);
 
-        this.whind_error_message = [
+        this.wind_error_message = [
             `${message} at ${file ? file + ":" : ""}${l + 1}:${char + 1 - ((l > 0) ? 1 : 0)}`,
             `${error_border}`,
             `${l - 1 > -1 ? line_number(l - 1) + trunc + prev_line_o + (prev_line_o.length < prev_line.length ? " ..." : "") : ""}`,
@@ -111,6 +111,6 @@ export class WhindSyntaxError extends SyntaxError {
     }
 
     get message() {
-        return this.whind_error_message;
+        return this.wind_error_message;
     }
 }

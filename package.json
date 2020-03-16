@@ -1,9 +1,9 @@
 {
-  "name": "@candlefw/whind",
+  "name": "@candlefw/wind",
   "version": "0.4.0",
   "description": "A Simple Tokenizing Lexer",
-  "main": "./build/library/whind.js",
-  "types": "./build/types/whind.d.ts",
+  "main": "./build/library/wind.js",
+  "types": "./build/types/wind.d.ts",
   "type": "module",
   "directories": {
     "test": "test"
@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://www.github.com/candlefw/cfw-whind"
+    "url": "https://www.github.com/candlefw/cfw-wind"
   },
   "keywords": [
     "lexer",
