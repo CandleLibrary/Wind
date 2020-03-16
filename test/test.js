@@ -1,5 +1,6 @@
-import chai from "chai";
-chai.should();
+import whind from "../build/library/whind.js";
+
+"Lexer Tests";
 
 const test_string = `
         Here in lies all that matters: a nuൗmber, 101, a symbol, #, a string,
@@ -7,95 +8,120 @@ const test_string = `
 
     `;
 
-    const test_string2 = `
+const test_string2 = `
         Here in lies all that matters: a nuൗmber, 101, a symbol, #, a string,
             "some day", the brackets, [{<()>}], and the rest, +=!@.
         This is a another line that contains far less then it should.
     `;
 
+let types = whind.types;
 
-import whind from "../source/whind.mjs";
+"Correctly parses string, ignoring whites space, and creates token lexums matching character syntax.";
+{
+    let lex = whind(test_string);
 
-const constr = whind.constructor;
+    ((lex.tx == "Here"));
 
-describe("Test", function() {
+    lex.n.n.n.n;
+    ((lex.tx == "that"));
 
-    let types = whind.types;
+    lex.n.n;
+    ((lex.ch == ":"));
 
-    it("Correctly parses string, ignoring whites space, and creates token lexums matching character syntax.", function() {
-        let lex = whind(test_string);
-        lex.tx.should.equal("Here");
-        lex.n.n.n.n.tx.should.equal("that");
-        lex.n.n.ch.should.equal(":");
-        let lex_copy = lex.copy();
-        lex_copy.off += 1;
-        lex.n.n.n.n.ty.should.equal(types.number);
-        lex.n.slice(lex_copy).should.equal(" a nuൗmber, 101");
-        lex.n.n.n.n.ty.should.equal(types.symbol);
-        lex.n.n.n.n.n.ty.should.equal(types.string);
-        lex.n.n.n.n.n.ty.should.equal(types.open_bracket);
-        lex.ch.should.equal("[");
-        lex.n.ty.should.equal(types.open_bracket);
-        lex.ch.should.equal("{");
-        lex.n.ty.should.equal(types.operator);
-        lex.ch.should.equal("<");
-        lex.n.ty.should.equal(types.open_bracket);
-        lex.ch.should.equal("(");
-        lex.n.ty.should.equal(types.close_bracket);
-        lex.n.ty.should.equal(types.operator);
-        lex.n.ty.should.equal(types.close_bracket);
-        lex.n.ty.should.equal(types.close_bracket);
-        lex.n.ty.should.equal(types.symbol);
-        let start = lex.pos + 1;
-        lex.n.n.n.n.ch.should.equal(",");
-        lex.n.slice(start).should.equal(" and the rest, ");
-        lex.ty.should.equal(types.operator);
-        lex.n.ty.should.equal(types.operator);
-        lex.n.ty.should.equal(types.operator);
-        lex.n.ty.should.equal(types.symbol);
-        lex.n.ty.should.equal(types.symbol);
-        lex.n.END.should.equal(true);
-    });
+    let lex_copy = lex.copy();
 
-    it("Finds the end of string without missing any tokens", function(){
-        let lex = whind("This is 'the' string");
-        let compare = ["This", "is", "'the'", "string"];
-        let i = 0;
+    lex_copy.off += 1;
 
-        while(!lex.END){
-            lex.tx.should.equal(compare[i]);
-            i++;
-            lex.n;
-        };
+    lex.n.n.n.n;
+    ((lex.ty == types.number));
 
-        i.should.equal(4);
+    lex.n;
+    ((lex.slice(lex_copy) == " a nuൗmber, 101"));
 
-    });
+    lex.n.n.n.n;
+    ((lex.ty == types.symbol));
 
-    it("Is able to find the start of a matched substring", function(){
-        whind(test_string2).find("[{<(").tx.should.equal("[");
-        whind(test_string2).find("rest, +").tx.should.equal("rest");
-        whind(test_string2).find("nuൗmber").tx.should.equal("nuൗmber");
-    });
+    lex.n.n.n.n.n;
+    ((lex.ty == types.string));
 
-    it("Creates a meaningful syntax error message", function(){
-        const lex = whind(test_string2);
-        let r = lex.find("[{<(");
-        r.errorMessage(`[ ${r.tx} ]`).should.equal(
-`[ [ ] at 2:38
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- 1: ... ies all that matters: a nuൗmber, 101, a  ...
- 2: ... day", the brackets, [{<()>}], and the re ...
-────────────────────────────⮉
- 3: ... another line that contains far less then ...
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-        r = lex.find("nuൗmber");
-        r.errorMessage(`[ ${r.tx} ]`).should.equal(
-`[ nuൗmber ] at 1:41
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- 1: ... all that matters: a nuൗmber, 101, a symb ...
-────────────────────────────⮉
- 2: ... , the brackets, [{<()>}], and the rest,  ...
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
-    });
-});
+    lex.n.n.n.n.n;
+    ((lex.ty == types.open_bracket));
+
+    ((lex.ch == "["));
+
+    lex.n;
+    ((lex.ty == types.open_bracket));
+
+    ((lex.ch == "{"));
+
+    lex.n;
+    ((lex.ty == types.operator));
+    ((lex.ch == "<"));
+
+    lex.n;
+    ((lex.ty == types.open_bracket));
+    ((lex.ch == "("));
+
+    lex.n;
+    ((lex.ty == types.close_bracket));
+
+    lex.n;
+    ((lex.ty == types.operator));
+
+    lex.n;
+    ((lex.ty == types.close_bracket));
+
+    lex.n;
+    ((lex.ty == types.close_bracket));
+
+    lex.n;
+    ((lex.ty == types.symbol));
+
+    let start = lex.pos + 1;
+    lex.n.n.n.n;
+    ((lex.ch == ","));
+
+    lex.n;
+    ((lex.slice(start) == " and the rest, "));
+    ((lex.ty == types.operator));
+
+    lex.n;
+    ((lex.ty == types.operator));
+
+    lex.n;
+    ((lex.ty == types.operator));
+
+    lex.n;
+    ((lex.ty == types.symbol));
+
+    lex.n;
+    ((lex.ty == types.symbol));
+
+    lex.n;
+    ((lex.END == true));
+};
+
+"Finds the end of string without missing any tokens";
+{
+    let lex = whind("This is 'the' string");
+
+    let compare = ["This", "is", "'the'", "string"];
+
+    let i = 0;
+
+    while (!lex.END) {
+        ((lex.tx == compare[i]));
+        i++;
+        lex.n;
+    };
+
+    ((i == 4));
+
+};
+
+"Is able to find the start of a matched substring";
+{
+    ((whind(test_string2).find("[{<(").tx == "["));
+    ((whind(test_string2).find("rest, +").tx == "rest"));
+    ((whind(test_string2).find("nuൗmber").tx == "nuൗmber"));
+}; 
