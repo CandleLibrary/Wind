@@ -9,7 +9,7 @@
     "test": "test"
   },
   "scripts": {
-    "test.watch": "cfw_test ./test/test.js --watch",
+    "test.watch": "cfw.test ./test/test.js --watch",
     "test": "cfw.test ./test/test.js",
     "build": "rollup --config ./build/config/config.js",
     "build.table": "node ./source/build_unicode_tables.node.js",
@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://www.github.com/candlefw/cfw-wind"
+    "url": "https://www.github.com/candlefw/wind"
   },
   "keywords": [
     "lexer",
