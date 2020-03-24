@@ -95,7 +95,7 @@ air(j, hex << 8, 65, 70, 97, 122);
 air(j, bin << 8, 48, 49);
 
 //For oct numbers [07]
-air(j, oct << 8, 48, 47);
+air(j, oct << 8, 48, 55);
 
 //For the whole natural digit range
 air(j, (num|hex) << 8, 48, 57);
