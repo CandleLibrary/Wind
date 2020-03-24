@@ -1,4 +1,3 @@
-
 import {
     jump_table,
     id,
@@ -7,6 +6,9 @@ import {
     oct,
     bin
 } from "./tables.js";
+
+
+import { WindSyntaxError } from "./wind_syntax_error.js";
 
 enum TokenType {
     number = 1,
@@ -54,7 +56,7 @@ enum TokenType {
 enum Masks {
     TYPE_MASK = 0xF,
     PARSE_STRING_MASK = 0x10,
-    USE_EXTENDED_NUMBER_TYPES_MASK = 0x2,
+    USE_EXTENDED_NUMBER_TYPES_MASK = 0x4,
     IGNORE_WHITESPACE_MASK = 0x20,
     CHARACTERS_ONLY_MASK = 0x40,
     USE_EXTENDED_ID_MASK = 0x80,
@@ -84,14 +86,31 @@ type SymbolMap = Map<number, number | SymbolMap> & { IS_SYM: boolean; };
  * Token Producing Lexer. 
  */
 class Lexer {
-
+    /**
+     * Line location of the current token
+     */
     line: number;
+    /**
+     * Column location of the current token
+     */
     column: number;
-
+    /**
+     * The 
+     */
     tk: number;
-    type: TokenType;
 
+    /**
+     * The type id of the current token.
+     */
+    type: TokenType;
+    /**
+     * The offset in the string of the start of the current token.
+     */
     off: number;
+
+    /**
+    * The length of the current token.
+    */
     tl: number;
     sl: number;
 
@@ -113,7 +132,7 @@ class Lexer {
      */
     constructor(string: string = "", INCLUDE_WHITE_SPACE_TOKENS: boolean = false, PEEKING: boolean = false) {
 
-        if (typeof (string) !== "string") throw new Error(`String value must be passed to Lexer. A ${typeof (string)} was passed as the \`string\` argument.`);
+        if (typeof (string) !== "string") throw new Error(`String value must be passed to Lexer. A ${typeof (string)} was passed as the 'string' argument.`);
 
         Object.defineProperties(this, {
             symbol_map: { // Really Don't need to see this when logging
@@ -125,7 +144,9 @@ class Lexer {
                 writable: true,
                 value: null
             },
-            //Stores values accessed through binary operations
+            /**
+             * Stores values accessed through binary operations
+             */
             masked_values: {
                 writable: true,
                 value: 0
@@ -136,35 +157,22 @@ class Lexer {
                 enumerable: true,
                 value: string.length
             },
-            //  The string that the Lexer tokenizes.
+            //  The string that the Lexer will tokenize.
             str: {
                 writable: false,
                 value: string
             }
         });
 
-        /**
-         * The type id of the current token.
-         */
+
         this.type = 262144; //Default "non-value" for types is 1<<18;
 
-        /**
-         * The offset in the string of the start of the current token.
-         */
         this.off = 0;
 
-        /**
-         * The character offset of the current token within a line.
-         */
         this.column = 0;
-        /**
-         * The line position of the current token.
-         */
+
         this.line = 0;
 
-        /**
-         * The length of the current token.
-         */
         this.tl = 0;
 
         /**
@@ -190,13 +198,8 @@ class Lexer {
      * @public
      */
     reset(): Lexer {
-        this.p = null;
-        this.type = 32768;
-        this.off = 0;
-        this.tl = 0;
-        this.column = 0;
-        this.line = 0;
-        this.n;
+        this.resetHead();
+        this.next();
         return this;
     }
 
@@ -347,7 +350,7 @@ class Lexer {
                     type = TokenType.white_space;
                     length = off - base;
                     break;
-                case 5: //CARIAGE RETURN
+                case 5: //CARRIAGE RETURN
                     length = 2;
                 //intentional
                 case 6: //LINEFEED
@@ -360,51 +363,65 @@ class Lexer {
                     break;
                 case 7: //NUMBER
                     type = TokenType.number;
-                    //Check for binary, hexidecimal, and octal representation
+                    //Check for binary, hexadecimal, and octal representation
                     if (code == 48) { // 0 - ZERO
                         off++;
                         if (("oxbOXB").includes(str[off])) {
-                            const lups = { b: { lu: bin, ty: TokenType.number_bin }, o: { lu: oct, ty: TokenType.number_oct }, x: { lu: hex, ty: TokenType.number_hex } };
+                            const lups = {
+                                b: { lu: bin, ty: TokenType.number_bin },
+                                o: { lu: oct, ty: TokenType.number_oct },
+                                x: { lu: hex, ty: TokenType.number_hex }
+                            };
                             const { lu, ty } = lups[str[off].toLowerCase()];
 
                             //Code of first char after the letter should
                             // be within the range of the respective lu type : hex, oct, or bin
+
                             if ((lu & (jump_table[str.codePointAt(off + 1)] >> 8))) {
                                 while (++off < l && (lu & (jump_table[str.codePointAt(off)] >> 8)));
                                 type = ty;
+
+                                if (!this.USE_EXTENDED_NUMBER_TYPES)
+                                    type = TokenType.number;
+
+                                //harness.inspect(this.USE_EXTENDED_NUMBER_TYPES))
+
+                                length = off - base;
+                                break;
                             }
-                            //return just the 0
                         }
 
-                        //The number is just 0. Do not allow 0221, 00007, etc.
+                        //The number is just 0. Do not allow 0221, 00007, etc. 
+                        //But need to allow 0.1, 0.12 etc
+                        //and also detect .12354
 
                     } else {
-
                         while (++off < l && (num & (jump_table[str.codePointAt(off)] >> 8)));
-
-                        //type = number_int;
-
-                        if (str[off] == ".") {
-                            while (++off < l && (num & (jump_table[str.codePointAt(off)] >> 8)));
-                            //float
-                            type = TokenType.number_flt;
-                        }
-
-                        if (("Ee").includes(str[off])) {
-                            const ori_off = off;
-                            //Add e to the number string
-                            off++;
-                            if (("-+").includes(str[off])) off++;
-
-                            if (!(num & (jump_table[str.codePointAt(off)] >> 8))) {
-                                off = ori_off;
-                            } else {
-                                while (++off < l && (num & (jump_table[str.codePointAt(off)] >> 8)));
-                                type = TokenType.number_sci;
-                            }
-                            //scientific 
-                        }
                     }
+
+                    //type = number_int;
+
+                    if (str[off] == ".") {
+                        while (++off < l && (num & (jump_table[str.codePointAt(off)] >> 8)));
+                        //float
+                        type = TokenType.number_flt;
+                    }
+
+                    if (("Ee").includes(str[off])) {
+                        const ori_off = off;
+                        //Add e to the number string
+                        off++;
+                        if (("-+").includes(str[off])) off++;
+
+                        if (!(num & (jump_table[str.codePointAt(off)] >> 8))) {
+                            off = ori_off;
+                        } else {
+                            while (++off < l && (num & (jump_table[str.codePointAt(off)] >> 8)));
+                            type = TokenType.number_sci;
+                        }
+                        //scientific 
+                    }
+
 
                     if (!this.USE_EXTENDED_NUMBER_TYPES)
                         type = TokenType.number;
@@ -463,7 +480,7 @@ class Lexer {
     }
 
     /**
-        Looks for the string within the text and returns a new lexer at the location of the first occurance of the token or 
+        Looks for the string within the text and returns a new lexer at the location of the first occurrence of the token or 
     */
     find(string: string): Lexer {
 
@@ -499,11 +516,15 @@ class Lexer {
         return cp;
     }
 
+    createWindSyntaxError(message: this) {
+        return new WindSyntaxError(message, this);
+    }
+
     /**
      * Creates an error message with a diagram illustrating the location of the error. 
      */
     errorMessage(message: string = "", file: string = "", window_size: number = 120, tab_size: number = 2): string {
-        window_size = 500;
+        window_size = 20;
         // Get the text from the proceeding and the following lines; 
         // If current line is at index 0 then there will be no proceeeding line;
         // Likewise for the following line if current line is the last one in the string.
@@ -559,7 +580,7 @@ class Lexer {
             w_pointer_pos = Math.max(0, Math.min(pointer_pos, max_length)) - w_start,
 
 
-            //append the difference of line lengths to the end of the lines as space characers;
+            //append the difference of line lengths to the end of the lines as space characters;
 
             prev_line_o = (prev_line + sp.repeat(length_diff)).slice(w_start, w_end),
             curr_line_o = (curr_line + sp.repeat(length_diff)).slice(w_start, w_end),
@@ -807,7 +828,7 @@ class Lexer {
      * Alias for lexer.column
      */
     get char() {
-        return this.column
+        return this.column;
     }
 
     /** 

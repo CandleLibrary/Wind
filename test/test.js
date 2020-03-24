@@ -1,4 +1,4 @@
-import whind from "../build/library/whind.js";
+import whind from "../build/library/wind.js";
 
 "Lexer Tests";
 
