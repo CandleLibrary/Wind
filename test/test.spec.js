@@ -13,13 +13,30 @@ const test_string2 = `
         This is a another line that contains far less then it should.
     `;
 
+"Identifies Wind Lexer Types";
+{
+    "#";
+    const a = wind("0o123456");
+    a.USE_EXTENDED_NUMBER_TYPES = true;
+    a.reset();
+    ((a.ty == wind.types.oct));
+
+}
+{
+    "#";
+    const a = wind("0x123456");
+    a.USE_EXTENDED_NUMBER_TYPES = true;
+    a.reset();
+    ((a.ty == wind.types.hex));
+}
+
 let types = wind.types;
 
 "Correctly parses string, ignoring whites space, and creates token lexemes matching character syntax.";
 {
 
     let lex = wind(test_string);
-
+    "test name";
     ((lex.tx == "Here"));
 
     lex.n.n.n.n;
@@ -148,18 +165,20 @@ let types = wind.types;
     ((wind(test_string2).find("nuൗmber").tx == "nuൗmber"));
 };
 
+/*
 "Creates a meaningful syntax error message";
 {
     const lex = wind(test_string2);
     let r = lex.find("[{<(");
 
-    ((r.errorMessage(`[ ${r.tx} ]`) == `[ [ ] at 2:38
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
- 1: ... ies all that matters: a nuൗmber, 101, a  ...
- 2: ... day", the brackets, [{<()>}], and the re ...
-────────────────────────────⮉
- 3: ... another line that contains far less then ...
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`));
+    ((r.errorMessage(`[ ${r.tx} ]`) == `[ [ ] at 3:39
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 2: 
+        Here in lies all that matters: a nuൗmber, 101, a symbol, #, a string,
+ 3:             "some day", the brackets, [{<()>}], and the rest, +=!@.           
+──────────────────────────────────────────⮉
+ 4:         This is a another line that contains far less then it should.         
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`));
 
     r = lex.find("nuൗmber");
 
@@ -170,4 +189,14 @@ let types = wind.types;
  2: ... , the brackets, [{<()>}], and the rest,  ...
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`));
 
+}
+*/
+
+
+"Creates Error Message";
+{
+    const lex = wind("test message that this is the best test message.");
+
+    "This is the new test name";
+    ((lex.createWindSyntaxError("test")));
 }
