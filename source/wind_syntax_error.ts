@@ -26,10 +26,23 @@ export class WindSyntaxError extends SyntaxError {
      */
     column: number;
 
-    constructor(lex: Lexer, message: string = "", file: string = "", window_size: number = 120, tab_size: number = 2) {
+    constructor(message: string = "", lex: Lexer) {
 
         super();
 
+        this.name = "WindSyntaxError";
+        this.lex = lex;
+        this.file = "";
+        this.line = lex.column;
+        this.column = lex.line;
+        this.post_peek_lines = 1;
+        this.pre_peek_lines = 1;
+        this.window = 50;
+    }
+
+    get message() {
+
+        const lex = this.lex, tab_size = 4, window_size = 400, message = "test message", file = "";
         // Get the text from the proceeding and the following lines; 
         // If current line is at index 0 then there will be no proceeding line;
         // Likewise for the following line if current line is the last one in the string.
@@ -41,6 +54,7 @@ export class WindSyntaxError extends SyntaxError {
             str = lex.str,
             len = str.length,
             sp = " ";
+
 
         let prev_start = 0,
             next_start = 0,
@@ -97,7 +111,7 @@ export class WindSyntaxError extends SyntaxError {
 
             error_border = thick_line.repeat(curr_line_o.length + line_number.length + 8 + trunc.length);
 
-        this.wind_error_message = [
+        return [
             `${message} at ${file ? file + ":" : ""}${l + 1}:${char + 1 - ((l > 0) ? 1 : 0)}`,
             `${error_border}`,
             `${l - 1 > -1 ? line_number(l - 1) + trunc + prev_line_o + (prev_line_o.length < prev_line.length ? " ..." : "") : ""}`,
@@ -108,9 +122,5 @@ export class WindSyntaxError extends SyntaxError {
         ]
             .filter(e => !!e)
             .join("\n");
-    }
-
-    get message() {
-        return this.wind_error_message;
     }
 }
