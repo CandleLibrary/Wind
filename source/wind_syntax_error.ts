@@ -26,6 +26,14 @@ export class WindSyntaxError extends SyntaxError {
      */
     column: number;
 
+    lex: Lexer;
+
+    post_peek_lines: number;
+
+    pre_peek_lines: number;
+
+    window: number;
+
     constructor(message: string = "", lex: Lexer) {
 
         super();

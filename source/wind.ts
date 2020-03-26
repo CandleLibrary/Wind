@@ -516,7 +516,7 @@ class Lexer {
         return cp;
     }
 
-    createWindSyntaxError(message: this) {
+    createWindSyntaxError(message: string) {
         return new WindSyntaxError(message, this);
     }
 
