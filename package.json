@@ -28,7 +28,7 @@
   "author": "Anthony Weathersby",
   "license": "MIT",
   "devDependencies": {
-    "rollup": "^1.31.0"
+    "rollup": "^2.2.0"
   },
   "eslintConfig": {
     "parserOptions": {
