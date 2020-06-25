@@ -241,6 +241,8 @@ class Lexer {
             this.off = marker.off;
             this.column = marker.column;
             this.line = marker.line;
+            this.tl = marker.tl;
+            this.type = marker.type;
             this.masked_values = marker.masked_values;
         }
 
