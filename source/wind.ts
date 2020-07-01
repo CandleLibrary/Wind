@@ -237,13 +237,9 @@ class Lexer {
     sync(marker: Lexer = this.p): Lexer {
 
         if (marker instanceof Lexer) {
-            if (marker.str !== this.str) throw new Error("Cannot sync Lexers with different strings!");
-            this.off = marker.off;
-            this.column = marker.column;
-            this.line = marker.line;
-            this.tl = marker.tl;
-            this.type = marker.type;
-            this.masked_values = marker.masked_values;
+            if (marker.str !== this.str)
+                throw new Error("Cannot sync Lexers that tokenize different strings!");
+            marker.copy(this);
         }
 
         return this;
@@ -720,6 +716,9 @@ class Lexer {
     slice(start: number | Lexer = this.off): string {
 
         if (start instanceof Lexer) start = start.off;
+
+        if (start == this.off)
+            return this.tx;
 
         return this.str.slice(start, (this.off <= start) ? this.sl : this.off);
     }
