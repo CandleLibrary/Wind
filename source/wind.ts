@@ -114,6 +114,11 @@ class Lexer {
     tl: number;
     sl: number;
 
+    /**
+     * Location for the source of the string.
+     */
+    source: string;
+
     masked_values: number;
     str: string;
     p: Lexer;
@@ -175,6 +180,8 @@ class Lexer {
 
         this.tl = 0;
 
+        this.source = "";
+
         /**
          * Flag to ignore white spaced.
          */
@@ -217,14 +224,16 @@ class Lexer {
      * @return {Lexer}  Returns a new Lexer instance with the same property values.
      */
     copy(destination: Lexer = new Lexer(this.str, false, true)): Lexer {
+
         destination.off = this.off;
         destination.column = this.column;
         destination.line = this.line;
-        destination.sl = this.sl;
+        //destination.sl = this.sl;
         destination.tl = this.tl;
         destination.type = this.type;
         destination.symbol_map = this.symbol_map;
         destination.masked_values = this.masked_values;
+        destination.source = this.source;
         return destination;
     }
 
@@ -244,6 +253,46 @@ class Lexer {
 
         return this;
     }
+
+    /**
+     * Returns the Lexer bound to Lexer.prototype.p, or creates and binds a new Lexer to Lexer.prototype.p. Advences the other Lexer to the token ahead of the calling Lexer.
+     * @public
+     * @type {Lexer}
+     * @param {Lexer} [marker=this] - The marker to originate the peek from. 
+     * @param {Lexer} [peeking_marker=this.p] - The Lexer to set to the next token state.
+     * @return {Lexer} - The Lexer that contains the peeked at token.
+     */
+    peek(marker: Lexer = this, peeking_marker: Lexer = marker.p): Lexer {
+
+
+        if (!peeking_marker) {
+            if (!marker) return null;
+            if (!this.p) {
+                this.p = new Lexer(this.str, false, true);
+                peeking_marker = this.p;
+            }
+        }
+        peeking_marker.masked_values = marker.masked_values;
+        peeking_marker.type = marker.type;
+        peeking_marker.off = marker.off;
+        peeking_marker.tl = marker.tl;
+        peeking_marker.column = marker.column;
+        peeking_marker.line = marker.line;
+        this.next(peeking_marker);
+        return peeking_marker;
+    }
+    /*
+    peek(marker: Lexer = this, peeking_marker: Lexer = marker.p): Lexer {
+
+        if (!marker) return null;
+
+        marker.p = marker.copy(peeking_marker || new Lexer(this.str, false, true));
+
+        marker.p.next();
+
+        return marker.p;
+    } 
+    */
 
     /**
      * Sets the internal state to point to the next token. Sets Lexer.prototype.END to `true` if the end of the string is hit.
@@ -673,33 +722,6 @@ class Lexer {
         return this;
     }
 
-    /**
-     * Returns the Lexer bound to Lexer.prototype.p, or creates and binds a new Lexer to Lexer.prototype.p. Advences the other Lexer to the token ahead of the calling Lexer.
-     * @public
-     * @type {Lexer}
-     * @param {Lexer} [marker=this] - The marker to originate the peek from. 
-     * @param {Lexer} [peeking_marker=this.p] - The Lexer to set to the next token state.
-     * @return {Lexer} - The Lexer that contains the peeked at token.
-     */
-    peek(marker: Lexer = this, peeking_marker: Lexer = this.p): Lexer {
-
-        if (!peeking_marker) {
-            if (!marker) return null;
-            if (!this.p) {
-                this.p = new Lexer(this.str, false, true);
-                peeking_marker = this.p;
-            }
-        }
-        peeking_marker.masked_values = marker.masked_values;
-        peeking_marker.type = marker.type;
-        peeking_marker.off = marker.off;
-        peeking_marker.tl = marker.tl;
-        peeking_marker.column = marker.column;
-        peeking_marker.line = marker.line;
-        this.next(peeking_marker);
-        return peeking_marker;
-    }
-
 
     /**
      * Proxy for Lexer.prototype.slice
@@ -716,9 +738,6 @@ class Lexer {
     slice(start: number | Lexer = this.off): string {
 
         if (start instanceof Lexer) start = start.off;
-
-        if (start == this.off)
-            return this.tx;
 
         return this.str.slice(start, (this.off <= start) ? this.sl : this.off);
     }
