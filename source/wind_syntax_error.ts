@@ -50,7 +50,7 @@ export class WindSyntaxError extends SyntaxError {
 
     get message() {
 
-        const lex = this.lex, tab_size = 4, window_size = 400, message = "test message", file = "";
+        const lex = this.lex, tab_size = 4, window_size = 400, message = "test message", file = lex.source;
         // Get the text from the proceeding and the following lines; 
         // If current line is at index 0 then there will be no proceeding line;
         // Likewise for the following line if current line is the last one in the string.
