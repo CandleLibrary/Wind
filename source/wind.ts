@@ -7,61 +7,7 @@ import {
     bin
 } from "./tables.js";
 
-
 import { WindSyntaxError } from "./wind_syntax_error.js";
-
-enum TokenType {
-    number = 1,
-    num = number,
-    identifier = 2,
-    string = 4,
-    white_space = 8,
-    open_bracket = 16,
-    close_bracket = 32,
-    operator = 64,
-    symbol = 128,
-    new_line = 256,
-    data_link = 512,
-    number_bin = number | 1024,
-    number_oct = number | 2048,
-    number_hex = number | 4096,
-    number_int = number | 8192,
-    number_sci = number | 16384,
-    number_flt = number | 32768,
-    alpha_numeric = (identifier | number),
-    white_space_new_line = (white_space | new_line),
-    id = identifier,
-    str = string,
-    ws = white_space,
-    ob = open_bracket,
-    cb = close_bracket,
-    op = operator,
-    sym = symbol,
-    nl = new_line,
-    dl = data_link,
-    int = number_int,
-    integer = number_int,
-    bin = number_bin,
-    binary = number_bin,
-    oct = number_oct,
-    octal = number_oct,
-    hex = number_hex,
-    hexadecimal = number_hex,
-    flt = number_flt,
-    float = number_flt,
-    sci = number_sci,
-    scientific = number_sci,
-}
-
-enum Masks {
-    TYPE_MASK = 0xF,
-    PARSE_STRING_MASK = 0x10,
-    USE_EXTENDED_NUMBER_TYPES_MASK = 0x4,
-    IGNORE_WHITESPACE_MASK = 0x20,
-    CHARACTERS_ONLY_MASK = 0x40,
-    USE_EXTENDED_ID_MASK = 0x80,
-    TOKEN_LENGTH_MASK = 0xFFFFFF00,
-}
 
 //De Bruijn Sequence for finding index of right most bit set.
 //http://supertech.csail.mit.edu/papers/debruijn.pdf
@@ -70,22 +16,19 @@ export const debruijnLUT = [
     31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
 ],
     getNumbrOfTrailingZeroBitsFromPowerOf2 = (value) => debruijnLUT[(value * 0x077CB531) >>> 27],
-    arrow = String.fromCharCode(0x2b89),
-    line = String.fromCharCode(0x2500),
-    thick_line = String.fromCharCode(0x2501),
-    HORIZONTAL_TAB = 9,
+
     SPACE = 32,
     extended_jump_table = jump_table.slice();
 
 extended_jump_table[45] |= 2 << 8;
 extended_jump_table[95] |= 2 << 8;
 
-type SymbolMap = Map<number, number | SymbolMap> & { IS_SYM: boolean; };
+
 
 /**
  * Token Producing Lexer. 
  */
-class Lexer {
+export class Lexer implements LexerType {
     /**
      * Line location of the current token
      */
@@ -228,12 +171,12 @@ class Lexer {
         destination.off = this.off;
         destination.column = this.column;
         destination.line = this.line;
-        //destination.sl = this.sl;
         destination.tl = this.tl;
         destination.type = this.type;
         destination.symbol_map = this.symbol_map;
         destination.masked_values = this.masked_values;
         destination.source = this.source;
+
         return destination;
     }
 
@@ -255,7 +198,8 @@ class Lexer {
     }
 
     /**
-     * Returns the Lexer bound to Lexer.prototype.p, or creates and binds a new Lexer to Lexer.prototype.p. Advences the other Lexer to the token ahead of the calling Lexer.
+     * Returns the Lexer bound to Lexer.prototype.p, or creates and binds a new Lexer to Lexer.prototype.p. 
+     * Advances the other Lexer to the token ahead of the calling Lexer.
      * @public
      * @type {Lexer}
      * @param {Lexer} [marker=this] - The marker to originate the peek from. 
@@ -267,18 +211,16 @@ class Lexer {
 
         if (!peeking_marker) {
             if (!marker) return null;
-            if (!this.p) {
-                this.p = new Lexer(this.str, false, true);
-                peeking_marker = this.p;
+            if (!marker.p) {
+                marker.p = new Lexer(marker.str, false, true);
+                peeking_marker = marker.p;
             }
         }
-        peeking_marker.masked_values = marker.masked_values;
-        peeking_marker.type = marker.type;
-        peeking_marker.off = marker.off;
-        peeking_marker.tl = marker.tl;
-        peeking_marker.column = marker.column;
-        peeking_marker.line = marker.line;
-        this.next(peeking_marker);
+
+        marker.copy(peeking_marker);
+
+        marker.next(peeking_marker);
+
         return peeking_marker;
     }
     /*
@@ -571,85 +513,7 @@ class Lexer {
      * Creates an error message with a diagram illustrating the location of the error. 
      */
     errorMessage(message: string = "", file: string = "", window_size: number = 120, tab_size: number = 2): string {
-        window_size = 20;
-        // Get the text from the proceeding and the following lines; 
-        // If current line is at index 0 then there will be no proceeeding line;
-        // Likewise for the following line if current line is the last one in the string.
-
-        const
-            line_start = this.off - this.column,
-            char = this.column,
-            l = this.line,
-            str = this.str,
-            len = str.length,
-            sp = " ";
-
-        let prev_start = 0,
-            next_start = 0,
-            next_end = 0,
-            i = 0;
-
-        //get the start of the proceeding line
-        for (i = line_start; --i > 0 && jump_table[str.codePointAt(i)] !== 6;);
-        prev_start = i;
-
-        //get the end of the current line...
-        for (i = this.off + this.tl; i++ < len && jump_table[str.codePointAt(i)] !== 6;);
-        next_start = i;
-
-
-        //and the next line
-        for (; i++ < len && jump_table[str.codePointAt(i)] !== 6;);
-        next_end = i;
-
-        let pointer_pos = char - (line_start > 0 ? 1 : 0);
-
-        for (i = line_start; ++i < this.off;)
-            if (str.codePointAt(i) == HORIZONTAL_TAB)
-                pointer_pos += tab_size - 1;
-
-        //find the location of the offending symbol
-        const
-            prev_line = str.slice(prev_start + (prev_start > 0 ? 1 : 0), line_start).replace(/\t/g, sp.repeat(tab_size)),
-            curr_line = str.slice(line_start + (line_start > 0 ? 1 : 0), next_start).replace(/\t/g, sp.repeat(tab_size)),
-            next_line = str.slice(next_start + (next_start > 0 ? 1 : 0), next_end).replace(/\t/g, " "),
-
-            //get the max line length;
-
-            max_length = Math.max(prev_line.length, curr_line.length, next_line.length),
-            min_length = Math.min(prev_line.length, curr_line.length, next_line.length),
-            length_diff = max_length - min_length,
-
-            //Get the window size;
-            w_size = window_size,
-            w_start = Math.max(0, Math.min(pointer_pos - w_size / 0.75, max_length)),
-            w_end = Math.max(0, Math.min(pointer_pos + w_size / 0.25, max_length)),
-            w_pointer_pos = Math.max(0, Math.min(pointer_pos, max_length)) - w_start,
-
-
-            //append the difference of line lengths to the end of the lines as space characters;
-
-            prev_line_o = (prev_line + sp.repeat(length_diff)).slice(w_start, w_end),
-            curr_line_o = (curr_line + sp.repeat(length_diff)).slice(w_start, w_end),
-            next_line_o = (next_line + sp.repeat(length_diff)).slice(w_start, w_end),
-
-            trunc = w_start !== 0 ? "... " : "",
-
-            line_number = n => ` ${(sp.repeat(3) + (n + 1)).slice(-(l + 1 + "").length)}: `,
-
-            error_border = thick_line.repeat(curr_line_o.length + line_number.length + 8 + trunc.length);
-
-        return [
-            `${message} at ${file ? file + ":" : ""}${l + 1}:${char + 1 - ((l > 0) ? 1 : 0)}`,
-            `${error_border}`,
-            `${l - 1 > -1 ? line_number(l - 1) + trunc + prev_line_o + (prev_line_o.length < prev_line.length ? " ..." : "") : ""}`,
-            `${true ? line_number(l) + trunc + curr_line_o + (curr_line_o.length < curr_line.length ? " ..." : "") : ""}`,
-            `${line.repeat(w_pointer_pos + trunc.length + line_number(l + 1).length) + arrow}`,
-            `${next_start < str.length ? line_number(l + 1) + trunc + next_line_o + (next_line_o.length < next_line.length ? " ..." : "") : ""}`,
-            `${error_border}`
-        ]
-            .filter(e => !!e)
-            .join("\n");
+        return this.createWindSyntaxError(message).message;
     }
 
     errorMessageWithIWS(...v: string[]): string {
@@ -1027,7 +891,8 @@ Lexer.types = TokenType;
 whind.types = TokenType;
 
 import * as ascii from "./ascii_code_points.js";
+import { LexerType, TokenType, SymbolMap, Masks } from "./types.js";
 
-export { Lexer, ascii, TokenType };
+export { ascii, TokenType, LexerType };
 
 export default whind;

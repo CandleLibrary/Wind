@@ -1,8 +1,13 @@
 import { jump_table } from "./tables.js";
-import { HORIZONTAL_TAB, thick_line, line, arrow, Lexer } from "./wind.js";
+import { LexerType } from "./types.js";
 /**
  * Error Object produced by wind.errorMessage
  */
+
+const HORIZONTAL_TAB = 9,
+    arrow = String.fromCharCode(0x2b89),
+    line = String.fromCharCode(0x2500),
+    thick_line = String.fromCharCode(0x2501);
 export class WindSyntaxError extends SyntaxError {
 
     wind_error_message: string;
@@ -26,7 +31,7 @@ export class WindSyntaxError extends SyntaxError {
      */
     column: number;
 
-    lex: Lexer;
+    lex: LexerType;
 
     post_peek_lines: number;
 
@@ -34,7 +39,9 @@ export class WindSyntaxError extends SyntaxError {
 
     window: number;
 
-    constructor(message: string = "", lex: Lexer) {
+    msg: string;
+
+    constructor(message: string = "", lex: LexerType) {
 
         super();
 
@@ -46,11 +53,12 @@ export class WindSyntaxError extends SyntaxError {
         this.post_peek_lines = 1;
         this.pre_peek_lines = 1;
         this.window = 50;
+        this.msg = message;
     }
 
     get message() {
 
-        const lex = this.lex, tab_size = 4, window_size = 400, message = "test message", file = lex.source;
+        const lex = this.lex, tab_size = 4, window_size = 400, message = this.msg || "test message", file = lex.source;
         // Get the text from the proceeding and the following lines; 
         // If current line is at index 0 then there will be no proceeding line;
         // Likewise for the following line if current line is the last one in the string.
@@ -113,7 +121,7 @@ export class WindSyntaxError extends SyntaxError {
             curr_line_o = (curr_line + sp.repeat(length_diff)).slice(w_start, w_end),
             next_line_o = (next_line + sp.repeat(length_diff)).slice(w_start, w_end),
 
-            trunc = w_start !== 0 ? "... " : "",
+            trunc = w_start !== 0 ? "..." : "",
 
             line_number = n => ` ${(sp.repeat(3) + (n + 1)).slice(-(l + 1 + "").length)}: `,
 
@@ -122,10 +130,10 @@ export class WindSyntaxError extends SyntaxError {
         return [
             `${message} at ${file ? file + ":" : ""}${l + 1}:${char + 1 - ((l > 0) ? 1 : 0)}`,
             `${error_border}`,
-            `${l - 1 > -1 ? line_number(l - 1) + trunc + prev_line_o + (prev_line_o.length < prev_line.length ? " ..." : "") : ""}`,
-            `${true ? line_number(l) + trunc + curr_line_o + (curr_line_o.length < curr_line.length ? " ..." : "") : ""}`,
+            `${l - 1 > -1 ? line_number(l - 1) + trunc + prev_line_o + (prev_line_o.length < prev_line.length ? "..." : "") : ""}`,
+            `${true ? line_number(l) + trunc + curr_line_o + (curr_line_o.length < curr_line.length ? "..." : "") : ""}`,
             `${line.repeat(w_pointer_pos + trunc.length + line_number(l + 1).length) + arrow}`,
-            `${next_start < str.length ? line_number(l + 1) + trunc + next_line_o + (next_line_o.length < next_line.length ? " ..." : "") : ""}`,
+            `${next_start < str.length ? line_number(l + 1) + trunc + next_line_o + (next_line_o.length < next_line.length ? "..." : "") : ""}`,
             `${error_border}`
         ]
             .filter(e => !!e)
