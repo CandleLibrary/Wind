@@ -5,7 +5,7 @@ import { LexerType } from "./types.js";
  */
 
 const HORIZONTAL_TAB = 9,
-    arrow = String.fromCharCode(0x2b89),
+    arrow = String.fromCharCode(0x25B2),
     line = String.fromCharCode(0x2500),
     thick_line = String.fromCharCode(0x2501);
 export class WindSyntaxError extends SyntaxError {
@@ -53,12 +53,12 @@ export class WindSyntaxError extends SyntaxError {
         this.post_peek_lines = 1;
         this.pre_peek_lines = 1;
         this.window = 50;
-        this.msg = message;
+        this.msg = message || "no error message";
     }
 
     get message() {
 
-        const lex = this.lex, tab_size = 4, window_size = 400, message = this.msg || "test message", file = lex.source;
+        const lex = this.lex, tab_size = 4, window_size = 400, message = this.msg, file = lex.source;
         // Get the text from the proceeding and the following lines; 
         // If current line is at index 0 then there will be no proceeding line;
         // Likewise for the following line if current line is the last one in the string.
@@ -132,7 +132,7 @@ export class WindSyntaxError extends SyntaxError {
             `${error_border}`,
             `${l - 1 > -1 ? line_number(l - 1) + trunc + prev_line_o + (prev_line_o.length < prev_line.length ? "..." : "") : ""}`,
             `${true ? line_number(l) + trunc + curr_line_o + (curr_line_o.length < curr_line.length ? "..." : "") : ""}`,
-            `${line.repeat(w_pointer_pos + trunc.length + line_number(l + 1).length) + arrow}`,
+            `${(" " || line).repeat(w_pointer_pos + trunc.length + line_number(l + 1).length) + arrow}`,
             `${next_start < str.length ? line_number(l + 1) + trunc + next_line_o + (next_line_o.length < next_line.length ? "..." : "") : ""}`,
             `${error_border}`
         ]
