@@ -54,7 +54,7 @@ async function start() {
 			li = ind;
 		}
 
-		ranges.splice(0,1);
+		ranges.splice(0, 1);
 
 		return { singles: ranges.filter(r => r[0] === r[1]).map(r => r[0]), ranges: ranges.filter(r => r[0] !== r[1]).flat() };
 	}
@@ -65,10 +65,10 @@ async function start() {
 
 	const table = [];
 
-	function hex(v){
-		return v //"0x"+v.toString(16);
+	function hex(v) {
+		return v; //"0x"+v.toString(16);
 	}
-	
+
 	console.log(`const uni_id_start=[${start_results.singles.map(hex).join(",")}]\n`);
 	console.log(`const uni_id_start_r=[${start_results.ranges.map(hex).join(",")}]\n`);
 	console.log(`const uni_id_cont=[${continue_results.singles.map(hex).join(",")}]\n`);
