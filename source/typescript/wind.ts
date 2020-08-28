@@ -7,7 +7,8 @@ import {
     bin
 } from "./tables.js";
 
-import { WindSyntaxError } from "./wind_syntax_error.js";
+import { WindSyntaxError, blame } from "./wind_syntax_error.js";
+
 
 //De Bruijn Sequence for finding index of right most bit set.
 //http://supertech.csail.mit.edu/papers/debruijn.pdf
@@ -24,52 +25,22 @@ extended_jump_table[45] |= 2 << 8;
 extended_jump_table[95] |= 2 << 8;
 
 
-
-/**
- * Token Producing Lexer. 
- */
 export class Lexer implements LexerType {
-    /**
-     * Line location of the current token
-     */
+
     line: number;
-    /**
-     * Column location of the current token
-     */
     column: number;
-    /**
-     * The 
-     */
-    tk: number;
-
-    /**
-     * The type id of the current token.
-     */
     type: TokenType;
-    /**
-     * The offset in the string of the start of the current token.
-     */
     off: number;
-
-    /**
-    * The length of the current token.
-    */
     tl: number;
     sl: number;
-
-    /**
-     * Location for the source of the string.
-     */
     source: string;
-
     masked_values: number;
     str: string;
     p: Lexer;
     symbol_map: SymbolMap;
-
-    //Exists on prototype
     id_lu: Uint16Array;
     addCharacter: any;
+    tk: number;
 
     static types: typeof TokenType;
     /**
@@ -172,6 +143,7 @@ export class Lexer implements LexerType {
         destination.column = this.column;
         destination.line = this.line;
         destination.tl = this.tl;
+        destination.sl = this.sl;
         destination.type = this.type;
         destination.symbol_map = this.symbol_map;
         destination.masked_values = this.masked_values;
@@ -181,7 +153,7 @@ export class Lexer implements LexerType {
     }
 
     /**
-     * Given another Lexer with the same `str` property value, it will copy the state of that Lexer.
+     * Given another Lexer with the same `str` property value, copies the state of that Lexer.
      * @param      {Lexer}  [marker=this.peek]  The Lexer to clone the state from. 
      * @throws     {Error} Throws an error if the Lexers reference different strings.
      * @public
@@ -520,6 +492,8 @@ export class Lexer implements LexerType {
         return this.errorMessage(...v) + "\n" + (!this.IWS) ? "\n The Lexer produced whitespace tokens" : "";
     }
 
+    blame() { return blame(this); }
+
     /**
      * Will throw a new Error, appending the parsed string line and position information to the the error message passed into the function.
      * @instance
@@ -607,35 +581,6 @@ export class Lexer implements LexerType {
     }
 
     /**
-     * Skips to the end of a comment section.
-     * @param {boolean} ASSERT - If set to true, will through an error if there is not a comment line or block to skip.
-     * @param {Lexer} [marker=this] - If another Lexer is passed into this method, it will advance the token state of that Lexer.
-     */
-    comment(ASSERT: boolean = false, marker: Lexer = this) {
-
-        if (!(marker instanceof Lexer)) return marker;
-
-        if (marker.ch == "/") {
-            if (marker.pk.ch == "*") {
-                marker.sync();
-
-                //@ts-ignore
-                while (!marker.END && (marker.next().ch !== "*" || marker.pk.ch !== "/")) { /** NO OP */ }
-
-                marker.sync().assert("/");
-            } else if (marker.pk.ch == "/") {
-                const IWS = marker.IWS;
-                while (marker.next().ty != TokenType.new_line && !marker.END) { /** NO OP */ }
-                marker.IWS = IWS;
-                marker.next();
-            } else
-                if (ASSERT) marker.throw("Expecting the start of a comment");
-        }
-
-        return marker;
-    }
-
-    /**
      * Replaces the string the Lexer is tokenizing. 
      * @param string - New string to replace the existing one with.
      * @param RESET - Flag that if set true will reset the Lexers position to the start of the string
@@ -720,10 +665,8 @@ export class Lexer implements LexerType {
     */
     addSymbol(sym: string): void {
 
-
         if (!this.symbol_map)
             this.symbol_map = <SymbolMap>new Map;
-
 
         let map = this.symbol_map;
 
@@ -737,6 +680,14 @@ export class Lexer implements LexerType {
         }
 
         map.IS_SYM = true;
+    }
+    /**[API] 
+     * Seeks the end of the input string. Returns marker set to this position.
+    */
+    getEnd() {
+        const copy = this.copy();
+        while (!copy.END) copy.next();
+        return copy;
     }
 
     /** Getters and Setters ***/
@@ -882,17 +833,17 @@ export class Lexer implements LexerType {
 Lexer.prototype.id_lu = jump_table;
 Lexer.prototype.addCharacter = Lexer.prototype.addSymbol;
 
-function whind(string: string, INCLUDE_WHITE_SPACE_TOKENS = false): Lexer { return new Lexer(string, INCLUDE_WHITE_SPACE_TOKENS); }
+function wind(string: string, INCLUDE_WHITE_SPACE_TOKENS = false): Lexer { return new Lexer(string, INCLUDE_WHITE_SPACE_TOKENS); }
 
-whind.constructor = Lexer;
+wind.constructor = Lexer;
 
 Lexer.types = TokenType;
 
-whind.types = TokenType;
+wind.types = TokenType;
 
 import * as ascii from "./ascii_code_points.js";
 import { LexerType, TokenType, SymbolMap, Masks } from "./types.js";
 
 export { ascii, TokenType, LexerType };
 
-export default whind;
+export default wind;

@@ -1,7 +1,7 @@
 {
   "name": "@candlefw/wind",
   "version": "0.4.1-dev",
-  "description": "A Simple Tokenizing Lexer",
+  "description": "Tokenizer",
   "main": "./build/library/wind.js",
   "types": "./build/types/wind.d.ts",
   "type": "module",
