@@ -828,6 +828,11 @@ export class Lexer implements LexerType {
     get types(): typeof TokenType {
         return TokenType;
     }
+
+    setSource(source: string) {
+        this.source = source;
+        return this;
+    }
 }
 
 Lexer.prototype.id_lu = jump_table;
