@@ -140,8 +140,8 @@ export class WindSyntaxError extends SyntaxError {
 
     get message() {
 
-        const lex = this.lex, tab_size = 4, window_size = 400, message = this.msg, file = lex.source;
+        const lex = this.lex, tab_size = 4, window_size = 400, message = this.msg, file = lex.source ?? "";
 
-        return message + " " + (lex.line + 1) + ":" + lex.char + "\n" + blame(lex);
+        return message + "\n at " + file + ":" + (lex.line + 1) + ":" + lex.char + "\n" + blame(lex);
     }
 }
