@@ -302,13 +302,14 @@ export class Lexer implements LexerType {
                     }
                     break;
                 case 3: //SPACE SET
-                    while (++off < l && str.codePointAt(off) === SPACE);
+                    ++off;
+                    //while (++off < l && str.codePointAt(off) === SPACE);
                     type = TokenType.white_space;
                     length = off - base;
                     break;
                 case 4: //TAB SET
-                    while (++off < l && str[off] === "\t");
-                    type = TokenType.white_space;
+                    ++off;
+                    type = TokenType.tab;
                     length = off - base;
                     break;
                 case 5: //CARRIAGE RETURN
@@ -398,10 +399,6 @@ export class Lexer implements LexerType {
                     break;
                 case 10: //CLOSE BRACKET
                     type = TokenType.close_bracket;
-                    break;
-                case 11: //Data Link Escape
-                    type = TokenType.data_link;
-                    length = 4; //Stores two UTF16 values and a data link sentinel
                     break;
             }
 
