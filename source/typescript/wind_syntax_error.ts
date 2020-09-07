@@ -128,20 +128,21 @@ export class WindSyntaxError extends SyntaxError {
         super();
 
         this.name = "WindSyntaxError";
-        this.lex = lex;
+        this.lex = lex.copy();
         this.file = "";
-        this.line = lex.column;
-        this.column = lex.line;
+        this.line = lex.line;
+        this.column = lex.column;
         this.post_peek_lines = 1;
         this.pre_peek_lines = 1;
         this.window = 50;
         this.msg = message || "no error message";
     }
 
+
     get message() {
 
         const lex = this.lex, tab_size = 4, window_size = 400, message = this.msg, file = lex.source ?? "";
 
-        return message + "\n at " + file + ":" + (lex.line + 1) + ":" + lex.char + "\n" + blame(lex);
+        return message + "\n --at " + file + ":" + (lex.line + 1) + ":" + lex.char + "\n" + blame(lex);
     }
 }

@@ -98,4 +98,6 @@ export interface LexerType {
     //Exists on prototype
     id_lu: Uint16Array;
     addCharacter: any;
+
+    copy: () => LexerType;
 }

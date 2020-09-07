@@ -1,3 +1,26 @@
+/**[API]:license
+ * Something broke? Open a bug report. We may or may not fix it, as we are under no 
+ * obligation to do so. We'll judge each submission individually and decide what is
+ * worthy of correction.
+ * 
+ * If you want to  get your hands dirty, feel free to change as you need. Open a 
+ * pull request if you made some awesomeness that you want to share.
+ */
+
+/**[README; API]:brief
+ * 
+ * cfw.Wind is a zero dependency tokenizing class that is used extensively throughout 
+ * the CFW libraries. It provides a clean API that allows easy integration into projects 
+ * requiring a tokenizer. 
+ * 
+ * Wind is a simple tokenizing marker object that can be combined 
+ * with other objects to provide token recognition, error reporting, parser assertions,
+ */
+
+/**[README; API]:credits
+* De Bruijn Sequence: http://supertech.csail.mit.edu/papers/debruijn.pdf
+*/
+
 import {
     jump_table,
     id,
@@ -85,15 +108,12 @@ export class Lexer implements LexerType {
 
 
         this.type = 262144; //Default "non-value" for types is 1<<18;
-
-        this.off = 0;
-
-        this.column = 0;
-
-        this.line = 0;
-
         this.tl = 0;
 
+        this.off = 0;
+        this.column = 0;
+        this.line = 0;
+        
         this.source = "";
 
         /**

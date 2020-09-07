@@ -1,6 +1,6 @@
 {
   "name": "@candlefw/wind",
-  "version": "0.4.1-dev",
+  "version": "0.4.2",
   "description": "Tokenizer",
   "main": "./build/library/wind.js",
   "types": "./build/types/wind.d.ts",

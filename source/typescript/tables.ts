@@ -81,7 +81,7 @@ export const id = 2, num = 4, hex = 16, oct = 32, bin = 64;
  * Number are masked by [ 4 ] and Identifiers are masked by 6 [ 2 | 4 ] 
  */
 
-// entries marked as `2` are in the identifier set but not the number set
+// For identifier symbols
 air(j, id << 8, 65, 90, 97, 122);
 air(j, id << 8, ...uni_id_start_r);
 aii(j, id << 8, ...uni_id_start);
