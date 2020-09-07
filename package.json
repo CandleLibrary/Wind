@@ -10,11 +10,11 @@
   },
   "scripts": {
     "test.watch": "cfw.test ./test/test.spec.js --watch",
-    "test": "cfw.test ./test/test.spec.js",
+    "test": "cfw.test -i ./test/...",
     "build": "rollup --config ./build/config/config.js",
     "build.table": "node ./source/build_unicode_tables.node.js",
     "build.watch": "rollup --config ./build/config/config.js --watch",
-    "prepublish": "tsc -p ./tsconfig.json"
+    "prepublish": "tsc -p ./tsconfig.json && yarn test"
   },
   "repository": {
     "type": "git",
