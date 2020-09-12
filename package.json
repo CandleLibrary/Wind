@@ -1,6 +1,6 @@
 {
   "name": "@candlefw/wind",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Tokenizer",
   "main": "./build/library/wind.js",
   "types": "./build/types/wind.d.ts",
@@ -9,8 +9,8 @@
     "test": "test"
   },
   "scripts": {
-    "test.watch": "cfw.test ./test/test.spec.js --watch",
-    "test": "cfw.test -i ./test/...",
+    "test.watch": "cfw.test -w ./test/**",
+    "test": "cfw.test ./test/**",
     "build": "rollup --config ./build/config/config.js",
     "build.table": "node ./source/build_unicode_tables.node.js",
     "build.watch": "rollup --config ./build/config/config.js --watch",
