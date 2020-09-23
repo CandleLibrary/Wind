@@ -113,7 +113,7 @@ export class Lexer implements LexerType {
         this.off = 0;
         this.column = 0;
         this.line = 0;
-        
+
         this.source = "";
 
         /**
@@ -308,10 +308,21 @@ export class Lexer implements LexerType {
                     type = TokenType.symbol;
                     break;
                 case 1: //IDENTIFIER
-                    while (++off < l && (((id | num) & (jump_table[str.codePointAt(off)] >> 8))));
-                    type = TokenType.identifier;
-                    length = off - base;
-                    break;
+                    while (1) {
+
+                        while (++off < l && (((id | num) & (jump_table[str.codePointAt(off)] >> 8))));
+
+                        if (this.USE_EXTENDED_ID) {
+                            if ("-_".includes(str[off]) && ((id | num) & (jump_table[str.codePointAt(off + 1)] >> 8)))
+                                continue;
+                        }
+
+                        type = TokenType.identifier;
+
+                        length = off - base;
+
+                        break;
+                    } break;
                 case 2: //QUOTED STRING
                     if (this.PARSE_STRING) {
                         type = TokenType.symbol;
@@ -828,7 +839,7 @@ export class Lexer implements LexerType {
     }
 
     set USE_EXTENDED_ID(boolean) {
-        this.masked_values = (this.masked_values & ~Masks.USE_EXTENDED_ID_MASK) | ((+boolean | 0) << 8);
+        this.masked_values = (this.masked_values & ~Masks.USE_EXTENDED_ID_MASK) | ((+boolean | 0) << 7);
     }
 
     get USE_EXTENDED_NUMBER_TYPES(): boolean {
