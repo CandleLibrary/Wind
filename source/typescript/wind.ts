@@ -380,6 +380,10 @@ export class Lexer implements LexerType {
                                 //harness.inspect(this.USE_EXTENDED_NUMBER_TYPES))
 
                                 length = off - base;
+
+
+                                type = TokenType.num;
+
                                 break;
                             }
                         }
@@ -420,6 +424,8 @@ export class Lexer implements LexerType {
                         type = TokenType.number;
 
                     length = off - base;
+
+                    type = TokenType.number;
 
                     break;
                 case 8: //OPERATOR
