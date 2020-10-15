@@ -708,6 +708,11 @@ export class Lexer implements LexerType {
         }
 
         map.IS_SYM = true;
+
+    }
+
+    addSymbols(...syms: string[]): void {
+        for (const sym of syms) this.addSymbol(sym);
     }
     /**[API] 
      * Seeks the end of the input string. Returns marker set to this position.
