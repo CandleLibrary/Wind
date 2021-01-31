@@ -510,6 +510,23 @@ export class Lexer implements LexerType {
 
         return cp;
     }
+    /**
+     * Return a lexer at the indicated line and offset, or stop at the end of the 
+     * string, whichever comes first.
+     * @param line - Line number, 1 indexed
+     * @param column - Column number, 1 indexed
+     */
+
+    seek(line: number, column: number): Lexer {
+        const lex = this.copy();
+        lex.CHARACTERS_ONLY = true;
+        line = Math.max(0, line - 1);
+        column = Math.max(1, column);
+        while (!lex.END && lex.line != line) { lex.next(); }
+        while (!lex.END && lex.char < column) { lex.next(); };
+        lex.CHARACTERS_ONLY = this.CHARACTERS_ONLY;
+        return lex;
+    }
 
     createWindSyntaxError(message: string) {
         return new WindSyntaxError(message, this);
@@ -888,6 +905,6 @@ wind.types = TokenType;
 import * as ascii from "./ascii_code_points.js";
 import { LexerType, TokenType, SymbolMap, Masks } from "./types.js";
 
-export { ascii, TokenType, LexerType };
+export { ascii, TokenType, LexerType, jump_table };
 
 export default wind;
