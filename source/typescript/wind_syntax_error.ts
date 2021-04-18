@@ -5,9 +5,9 @@ import { LexerType } from "./types.js";
  */
 
 const HORIZONTAL_TAB = 9,
-    arrow = String.fromCharCode(0x25B2),
-    line = String.fromCharCode(0x2500),
-    thick_line = String.fromCharCode(0x2501);
+    arrow = "^",
+    line = "-",
+    thick_line = "=";
 
 export function blame(lex: LexerType) {
     const tab_size = 4, window_size = 400, file = lex.source;
