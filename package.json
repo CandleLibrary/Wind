@@ -1,76 +1,76 @@
 {
-  "name": "@candlefw/wind",
-  "version": "0.4.3",
-  "description": "Tokenizer",
-  "main": "./build/library/wind.js",
-  "types": "./build/types/wind.d.ts",
-  "type": "module",
-  "directories": {
-    "test": "test"
-  },
-  "scripts": {
-    "test.watch": "cfw.test -w ./test/**",
-    "test": "cfw.test ./test/**",
-    "build": "rollup --config ./build/config/config.js",
-    "build.table": "node ./source/build_unicode_tables.node.js",
-    "build.watch": "rollup --config ./build/config/config.js --watch",
-    "prepublish": "tsc -p ./tsconfig.json && yarn test"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://www.github.com/candlefw/wind"
-  },
-  "keywords": [
-    "lexer",
-    "string",
-    "tokenizer"
-  ],
-  "author": "Anthony Weathersby",
-  "license": "MIT",
-  "devDependencies": {
-    "rollup": "^2.2.0"
-  },
-  "eslintConfig": {
-    "parserOptions": {
-      "sourceType": "module",
-      "ecmaVersion": 2019
+    "name": "@candlelib/wind",
+    "version": "0.4.4",
+    "description": "Tokenizer",
+    "main": "./build/library/wind.js",
+    "types": "./build/types/wind.d.ts",
+    "type": "module",
+    "directories": {
+        "test": "test"
     },
-    "env": {
-      "es6": true,
-      "browser": true,
-      "node": true
+    "scripts": {
+        "test.watch": "cfw.test -w ./test/**",
+        "test": "cfw.test ./test/**",
+        "build": "rollup --config ./build/config/config.js",
+        "build.table": "node ./source/build_unicode_tables.node.js",
+        "build.watch": "rollup --config ./build/config/config.js --watch",
+        "prepublish": "tsc -p ./tsconfig.json && yarn test"
     },
-    "extends": "eslint:recommended",
-    "rules": {
-      "no-fallthrough": [
-        "error",
-        {
-          "commentPattern": "[iI]ntentional( - [\\w\\W]*){0,1}"
+    "repository": {
+        "type": "git",
+        "url": "https://www.github.com/candlefw/wind"
+    },
+    "keywords": [
+        "lexer",
+        "string",
+        "tokenizer"
+    ],
+    "author": "Anthony Weathersby",
+    "license": "MIT",
+    "devDependencies": {
+        "rollup": "^2.2.0"
+    },
+    "eslintConfig": {
+        "parserOptions": {
+            "sourceType": "module",
+            "ecmaVersion": 2019
+        },
+        "env": {
+            "es6": true,
+            "browser": true,
+            "node": true
+        },
+        "extends": "eslint:recommended",
+        "rules": {
+            "no-fallthrough": [
+                "error",
+                {
+                    "commentPattern": "[iI]ntentional( - [\\w\\W]*){0,1}"
+                }
+            ],
+            "semi-style": [
+                "error",
+                "last"
+            ],
+            "semi": [
+                "warn",
+                "always",
+                {
+                    "omitLastInOneLineBlock": true
+                }
+            ],
+            "prefer-const": "warn",
+            "new-cap": [
+                "error"
+            ],
+            "padding-line-between-statements": [
+                "error",
+                {
+                    "blankLine": "always",
+                    "prev": "function",
+                    "next": "*"
+                }
+            ]
         }
-      ],
-      "semi-style": [
-        "error",
-        "last"
-      ],
-      "semi": [
-        "warn",
-        "always",
-        {
-          "omitLastInOneLineBlock": true
-        }
-      ],
-      "prefer-const": "warn",
-      "new-cap": [
-        "error"
-      ],
-      "padding-line-between-statements": [
-        "error",
-        {
-          "blankLine": "always",
-          "prev": "function",
-          "next": "*"
-        }
-      ]
     }
-  }
 }
