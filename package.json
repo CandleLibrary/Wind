@@ -9,11 +9,9 @@
         "test": "test"
     },
     "scripts": {
-        "test.watch": "cfw.test -w ./test/**",
-        "test": "cfw.test ./test/**",
-        "build": "rollup --config ./build/config/config.js",
+        "test.watch": "cure -w ./test/**",
+        "test": "cure ./test/**",
         "build.table": "node ./source/build_unicode_tables.node.js",
-        "build.watch": "rollup --config ./build/config/config.js --watch",
         "prepublish": "tsc -p ./tsconfig.json && yarn test"
     },
     "repository": {
