@@ -4,4 +4,4 @@ import wind from "@candlefw/wind";
 
 const lex = wind("test message that this is the best test message.");
 
-assert(lex.createWindSyntaxError("test"));
+assert(!lex.createWindSyntaxError("test"));
