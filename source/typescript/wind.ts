@@ -286,6 +286,7 @@ export class Lexer implements LexerType {
                 map = m;
                 off2 += 1;
                 code = str.charCodeAt(off2);
+
             }
 
             if (map.IS_SYM) {
@@ -359,6 +360,7 @@ export class Lexer implements LexerType {
                     //Check for binary, hexadecimal, and octal representation
                     if (code == 48) { // 0 - ZERO
                         off++;
+
                         if (("oxbOXB").includes(str[off])) {
                             const lups = {
                                 b: { lu: bin, ty: TokenType.number_bin },
@@ -377,12 +379,7 @@ export class Lexer implements LexerType {
                                 if (!this.USE_EXTENDED_NUMBER_TYPES)
                                     type = TokenType.number;
 
-                                //harness.inspect(this.USE_EXTENDED_NUMBER_TYPES))
-
                                 length = off - base;
-
-
-                                type = TokenType.num;
 
                                 break;
                             }
