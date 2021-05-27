@@ -15,7 +15,7 @@
 ### NPM
 
 ```bash
-npm install --save @candlefw/wind
+npm install --save @candlelib/wind
 ```
 ## Usage
 
@@ -25,7 +25,7 @@ npm install --save @candlefw/wind
 
 
 ```javascript
-import wind from "@candlefw/wind"
+import wind from "@candlelib/wind"
 
 const sample_string = "The 2345 a 0x3456 + 'a string'";
 
@@ -44,7 +44,7 @@ lexer.ty == lexer.types.number  //=> true
 ---
 # Wind **Lexer**
 
-`import { Lexer } from "@candlefw/wind"`
+`import { Lexer } from "@candlelib/wind"`
 
 ## Constructor
 

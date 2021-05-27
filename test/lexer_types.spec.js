@@ -1,4 +1,4 @@
-import wind from "@candlefw/wind";
+import wind from "@candlelib/wind";
 
 "Identifies Wind Lexer Types";
 
