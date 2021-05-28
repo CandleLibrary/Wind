@@ -899,9 +899,8 @@ Lexer.types = TokenType;
 
 wind.types = TokenType;
 
-import * as ascii from "./ascii_code_points.js";
 import { LexerType, TokenType, SymbolMap, Masks } from "./types.js";
 
-export { ascii, TokenType, LexerType, jump_table };
+export {  TokenType, LexerType, jump_table };
 
 export default wind;
