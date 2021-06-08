@@ -26,7 +26,8 @@
     "author": "Anthony Weathersby",
     "license": "MIT",
     "devDependencies": {
-        "@candlelib/cure": "*"
+        "@candlelib/cure": "*",
+        "@candlelib/uri": "*"
     },
     "eslintConfig": {
         "parserOptions": {
