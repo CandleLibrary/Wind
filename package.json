@@ -16,7 +16,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://www.github.com/candlefw/wind"
+        "url": "https://www.github.com/candlelibrary/wind"
     },
     "keywords": [
         "lexer",
