@@ -9,8 +9,8 @@
         "test": "test"
     },
     "scripts": {
-        "test.watch": "cure -w ./test/**",
-        "test": "cure ./test/**",
+        "test.watch": "candle.cure -w ./test/**",
+        "test": "candle.cure ./test/**",
         "build.table": "node ./source/build_unicode_tables.node.js",
         "prepublish": "tsc -p ./tsconfig.json && yarn test"
     },
