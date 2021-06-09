@@ -9,7 +9,7 @@
 
 /**[README; API]:brief
  * 
- * cfw.Wind is a zero dependency tokenizing class that is used extensively throughout 
+ * Wind is a zero dependency tokenizing class that is used extensively throughout 
  * the CFW libraries. It provides a clean API that allows easy integration into projects 
  * requiring a tokenizer. 
  * 
