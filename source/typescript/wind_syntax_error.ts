@@ -15,7 +15,7 @@ export function blame(lex: LexerType) {
     // If current line is at index 0 then there will be no proceeding line;
     // Likewise for the following line if current line is the last one in the string.
 
-    const
+    let
         line_start = lex.off - lex.char,
         char = lex.char,
         l = lex.line,
@@ -23,6 +23,7 @@ export function blame(lex: LexerType) {
         len = str.length,
         sp = " ";
 
+    lex.tl = lex.tl || 1;
 
     let prev_start = 0,
         next_start = 0,
@@ -33,21 +34,24 @@ export function blame(lex: LexerType) {
     for (i = line_start; --i > 0 && jump_table[str.codePointAt(i)] !== 6;);
     prev_start = i;
 
+
     //get the end of the current line...
-    for (i = lex.off + lex.tl; i++ < len && jump_table[str.codePointAt(i)] !== 6;);
+    for (i = lex.off + lex.tl; i < len && jump_table[str.codePointAt(i)] !== 6; i++);
     next_start = i;
 
-
     //and the next line
-    for (; i++ < len && jump_table[str.codePointAt(i)] !== 6;);
+    for (i++; i < len && jump_table[str.codePointAt(i)] !== 6; i++);
     next_end = i;
 
     let pointer_pos = char - (line_start > 0 ? 1 : 0);
 
-    for (i = line_start; ++i < lex.off;)
+    for (i = line_start; i < lex.off; i++)
         if (str.codePointAt(i) == HORIZONTAL_TAB)
             pointer_pos += tab_size - 1;
 
+    prev_start = Math.max(prev_start, 0);
+    line_start = Math.max(line_start, 0);
+    next_start = Math.max(next_start, 0);
     //find the location of the offending symbol
     const
         prev_line = str.slice(prev_start + (prev_start > 0 ? 1 : 0), line_start).replace(/\t/g, sp.repeat(tab_size)),
@@ -64,7 +68,7 @@ export function blame(lex: LexerType) {
         w_size = window_size,
         w_start = Math.max(0, Math.min(pointer_pos - w_size / 2, max_length)),
         w_end = Math.max(0, Math.min(pointer_pos + w_size / 2, max_length)),
-        w_pointer_pos = Math.max(0, Math.min(pointer_pos, max_length)) - w_start,
+        w_pointer_pos = Math.max(0, Math.min(pointer_pos, max_length)) - w_start - (line_start == 0 ? 1 : 0),
 
 
         //append the difference of line lengths to the end of the lines as space characters;
@@ -80,12 +84,12 @@ export function blame(lex: LexerType) {
         error_border = thick_line.repeat(curr_line_o.length + line_number.length + 8 + trunc.length);
 
     return [
-        `${error_border}`,
-        `${l - 1 > -1 ? line_number(l - 1) + trunc + prev_line_o + (prev_line_o.length < prev_line.length ? "..." : "") : ""}`,
-        `${true ? line_number(l) + trunc + curr_line_o + (curr_line_o.length < curr_line.length ? "..." : "") : ""}`,
-        `${(" " || line).repeat(w_pointer_pos + trunc.length + line_number(l + 1).length) + arrow}`,
-        `${next_start < str.length ? line_number(l + 1) + trunc + next_line_o + (next_line_o.length < next_line.length ? "..." : "") : ""}`,
-        `${error_border}`
+        /* brdr */`${error_border}`,
+        /* prev */`${l - 1 > -1 ? line_number(l - 1) + trunc + prev_line_o + (prev_line_o.length < prev_line.length ? "..." : "") : ""}`,
+        /* curr */`${true ? line_number(l) + trunc + curr_line_o + (curr_line_o.length < curr_line.length ? "..." : "") : ""}`,
+        /* arrw */`${(" " || line).repeat(w_pointer_pos + trunc.length + line_number(l + 1).length) + arrow}`,
+        /* next */`${next_start < str.length ? line_number(l + 1) + trunc + next_line_o + (next_line_o.length < next_line.length ? "..." : "") : ""}`,
+        /* brdr */`${error_border}`
     ]
         .filter(e => !!e)
         .join("\n");
@@ -127,6 +131,7 @@ export class WindSyntaxError extends SyntaxError {
 
         super();
 
+
         this.name = "WindSyntaxError";
         this.lex = lex.copy();
         this.file = "";
@@ -143,6 +148,6 @@ export class WindSyntaxError extends SyntaxError {
 
         const lex = this.lex, tab_size = 4, window_size = 400, message = this.msg, file = lex.source ?? "";
 
-        return message + "\n at " + file + ":" + (lex.line + 1) + ":" + lex.char + "\n" + blame(lex);
+        return "\n" + message + "\n at " + file + ":" + (lex.line + 1) + ":" + lex.char + "\n" + blame(lex);
     }
 }
