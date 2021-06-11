@@ -27,7 +27,13 @@ import {
     num,
     hex,
     oct,
-    bin
+    bin,
+    uni_id_cont_discrete,
+    uni_id_cont_ranges,
+    uni_id_start_discrete,
+    uni_id_start_ranges,
+    aii,
+    air
 } from "./tables.js";
 
 import { WindSyntaxError, blame } from "./wind_syntax_error.js";
@@ -532,7 +538,7 @@ export class Lexer implements LexerType {
     /**
      * Creates an error message with a diagram illustrating the location of the error. 
      */
-    errorMessage(message: string = "", file: string = "", window_size: number = 120, tab_size: number = 2): string {
+    errorMessage(message: string = ""): string {
         return this.createWindSyntaxError(message).message;
     }
 
@@ -901,6 +907,16 @@ wind.types = TokenType;
 
 import { LexerType, TokenType, SymbolMap, Masks } from "./types.js";
 
-export {  TokenType, LexerType, jump_table };
+export {
+    TokenType,
+    LexerType,
+    jump_table,
+    uni_id_cont_discrete,
+    uni_id_cont_ranges,
+    uni_id_start_discrete,
+    uni_id_start_ranges,
+    aii,
+    air
+};
 
 export default wind;
