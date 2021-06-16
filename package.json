@@ -12,7 +12,7 @@
         "test.watch": "candle.cure -w ./test/**",
         "test": "candle.cure ./test/**",
         "build.table": "node ./source/build_unicode_tables.node.js",
-        "prepublish": "rm -rf ./build && tsc & sleep 10"
+        "prepublishOnly": "rm -rf ./build && tsc & sleep 10"
     },
     "repository": {
         "type": "git",
