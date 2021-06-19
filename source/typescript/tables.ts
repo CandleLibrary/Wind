@@ -50,7 +50,7 @@ aii(j, 3, [32, 0xA0, 0x2002, 0x2003, 0x2004, 0x3000]);
 //4. TAB SET
 aii(j, 4, [9]);
 
-//5. CARIAGE RETURN 
+//5. CARRIAGE RETURN 
 aii(j, 5, [13]);
 
 //6. LINE FEED
