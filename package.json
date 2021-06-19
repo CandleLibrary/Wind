@@ -18,6 +18,12 @@
         "type": "git",
         "url": "https://www.github.com/candlelibrary/wind"
     },
+    "files": [
+        "/build",
+        "/README.md",
+        "/CHANGELOG.md",
+        "/LICENSE"
+    ],
     "keywords": [
         "lexer",
         "string",
