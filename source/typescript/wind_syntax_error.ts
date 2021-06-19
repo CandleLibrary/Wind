@@ -54,9 +54,9 @@ export function blame(lex: LexerType) {
     next_start = Math.max(next_start, 0);
     //find the location of the offending symbol
     const
-        prev_line = str.slice(prev_start + (prev_start > 0 ? 1 : 0), line_start).replace(/\t/g, sp.repeat(tab_size)),
-        curr_line = str.slice(line_start + (line_start > 0 ? 1 : 0), next_start).replace(/\t/g, sp.repeat(tab_size)),
-        next_line = str.slice(next_start + (next_start > 0 ? 1 : 0), next_end).replace(/\t/g, " "),
+        prev_line = str.slice(prev_start + (prev_start > 0 ? 1 : 0), line_start).replace(/\n/g, "").replace(/\t/g, sp.repeat(tab_size)),
+        curr_line = str.slice(line_start + (line_start > 0 ? 1 : 0), next_start).replace(/\n/g, "").replace(/\t/g, sp.repeat(tab_size)),
+        next_line = str.slice(next_start + (next_start > 0 ? 1 : 0), next_end).replace(/\n/g, "").replace(/\t/g, " "),
 
         //get the max line length;
 
