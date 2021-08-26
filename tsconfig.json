@@ -2,9 +2,9 @@
     "compileOnSave": true,
     "include": [
         "./source/typescript/**/*"
-    ],
+, "source/nodejs"    ],
     "exclude": [
-        "./source/typescript/nodejs/*"
+        "source/nodejs/*"
     ],
     "compilerOptions": {
         "types": [],

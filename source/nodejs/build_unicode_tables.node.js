@@ -1,7 +1,8 @@
 import URL from "@candlelib/uri";
 
 async function start() {
-	await URL.polyfill();
+
+	await URL.server();
 
 	const url = new URL("http://unicode.org/Public/12.0.0/ucd/UnicodeData.txt");
 

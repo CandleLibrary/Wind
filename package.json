@@ -11,7 +11,7 @@
     "scripts": {
         "test.watch": "candle.cure -w ./test/**",
         "test": "candle.cure ./test/**",
-        "build.table": "node ./source/build_unicode_tables.node.js",
+        "build.table": "node ./source/nodejs/build_unicode_tables.node.js",
         "prepublishOnly": "rm -rf ./build && tsc & sleep 10"
     },
     "repository": {
